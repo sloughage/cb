@@ -26,7 +26,7 @@ gulp.task('css', () => gulp.src('src/style.less')
   .pipe(gulp.dest('build'))
 )
 
-gulp.task('js', () => browserify('./src/components/main.jsx')
+gulp.task('js', () => browserify('./src/app.jsx')
   .transform('babelify', {presets: ['es2015', 'react']})
   .bundle()
   .pipe(source('app.js'))
@@ -47,7 +47,7 @@ gulp.task('react', () => browserify('./test/components/main.jsx')
 gulp.task('watch', () => {
   gulp.watch(['src/index.html'], ['html'])
   gulp.watch(['src/style.less'], ['css'])
-  gulp.watch(['src/js/*'], ['js'])
+  gulp.watch(['src/components/*'], ['js'])
 })
 
 gulp.task('default', ['html', 'css', 'js', 'watch'])

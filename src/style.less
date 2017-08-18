@@ -1,4 +1,126 @@
-body {
-  background-color: blue;
-  color: white;
+@trim: #DDD;
+@trim2: #BBB;
+@base: #000;
+
+body, div, p, input {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  font: inherit;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 1em;
+}
+
+html, body, #main, .listings {
+  width: 100%;
+}
+
+input {
+  border: solid @base 1px;
+  width: 8em;
+}
+
+.body {
+  padding: .5em;
+}
+
+.listings {
+  margin: .5em;
+}
+
+.flex {
+  display: flex;
+}
+
+.v {
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  background-color: @trim;
+  justify-content: space-between;
+}
+
+.hbtn {
+  display: flex;
+  align-items: center;
+  padding: 0 .5em;
+  height: 2em;
+  cursor: pointer;
+  &:hover {background-color: @trim2}
+}
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  right: 0;
+}
+
+.logo {
+  width: 10em;
+  height: 2em;
+  background-color: green;
+}
+
+.searchblock {
+  width: 10em;
+  margin: .5em;
+}
+
+.unsel {
+  cursor: pointer;
+  margin-left: .5em;
+}
+
+.sel {
+  .unsel;
+  background-color: @trim;
+}
+
+.trow {
+  display: flex;
+  width: 100%;
+}
+
+.thead {
+  .trow;
+  border-bottom: solid @base 1px;
+}
+
+.listing {
+  .trow;
+  margin: .5em 0;
+  text-decoration: none;
+  color: @base;
+  cursor: pointer;
+  &:hover {background-color: @trim}
+  // &:hover {background: linear-gradient(#BBB, #EEE)}
+}
+
+.tcell {
+  width: calc(100% / 5);
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes flicker {
+  0% {visibility: hidden}
+  60% {visibility: visible}
+}
+
+.l1 {
+  visibility: hidden;
+  animation: flicker 1s step-end .4s infinite;
+}
+.l2 {
+  visibility: hidden;
+  animation: flicker 1s step-end .6s infinite;
+}
+.l3 {
+  visibility: hidden;
+  animation: flicker 1s step-end .8s infinite;
 }
