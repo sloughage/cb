@@ -4,10 +4,20 @@ import Search from './search.jsx'
 import Listings from './listings.jsx'
 import Loading from './loading.jsx'
 
+import props from '../testdata.js'
+
+async function loadData () {
+  let data = await fetch('/api/search/load')
+  let json = await data.json()
+  console.log(json.res)
+}
+
+loadData()
+
 export default class Main extends React.Component {
-  constructor (props) {
+  constructor () {
     super()
-    this.state = props.props
+    this.state = props
     this.inputChange = this.inputChange.bind(this)
     this.clickVal = this.clickVal.bind(this)
     this.clickSearch = this.clickSearch.bind(this)

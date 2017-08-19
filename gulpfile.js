@@ -47,7 +47,7 @@ gulp.task('react', () => browserify('./test/components/main.jsx')
 gulp.task('watch', () => {
   gulp.watch(['src/index.html'], ['html'])
   gulp.watch(['src/style.less'], ['css'])
-  gulp.watch(['src/components/*'], ['js'])
+  gulp.watch(['src/**/*.jsx'], ['js'])
 })
 
 gulp.task('default', ['html', 'css', 'js', 'watch'])
