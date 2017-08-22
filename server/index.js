@@ -4,7 +4,7 @@ const static = require('koa-static')
 const send = require('koa-send')
 const router = require('koa-router')()
 
-const Search = require('./routes/search.js')
+const Search = require('./api/search.js')
 
 router.use('/api/search', Search.routes())
 

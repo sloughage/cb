@@ -1,8 +1,3 @@
-// let user = {
-//   isLoggedIn: true,
-//   username: 'bill69',
-//   userid: '123'}
-
 let user = {
   isLoggedIn: false}
 
@@ -40,19 +35,18 @@ let listings = [
 
 let columns = ['title', 'by', 'tags', 'seller', 'price']
 
-let input = 'woof'
+let input = ''
 
 let dropdown = {
   register: false,
   login: false,
-  settings: false
-}
+  settings: false}
 
-export default {
+module.exports = {
+  isLoading: false,
   user,
   categories,
   listings,
   columns,
   input,
-  dropdown
-}
+  dropdown}
