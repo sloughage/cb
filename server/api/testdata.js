@@ -1,5 +1,12 @@
+// let user = {
+//   isLoggedIn: false}
+
 let user = {
-  isLoggedIn: false}
+  isLoggedIn: true,
+  userid: 1234,
+  username: 'bill69',
+  cartcount: 2
+}
 
 let categories = [
   { name: 'title',

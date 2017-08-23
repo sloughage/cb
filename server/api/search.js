@@ -1,7 +1,15 @@
 const router = require('koa-router')()
 
-const testdata = require('./testdata.js')
+router.get('/load', async ctx => {ctx.body = {res: require('./testdata.js')}})
 
-router.get('/load', async ctx => {ctx.body = {res: testdata}})
+router.get('/', async ctx => {
+  let query = ctx.request.query
+  let rarr = Object.keys(query).map(x => {
+    let robj = {}
+    robj[x] = query[x]
+    return robj
+  })
+  ctx.body = {query: rarr}
+})
 
 module.exports = router

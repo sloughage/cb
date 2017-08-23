@@ -65,17 +65,23 @@ class Main extends React.Component {
   }
 
   clickHandler (e) {
+    let dd = this.state.dropdown
     let logincont = document.getElementById('logincont')
     let registercont = document.getElementById('registercont')
+    let settingscont = document.getElementById('settingscont')
     if (e.target.id === 'logindd') {
-      this.state.dropdown.login = !this.state.dropdown.login
-      this.state.dropdown.register = false
+      dd.login = !dd.login
+      dd.register = false
     } else if (e.target.id === 'registerdd') {
-      this.state.dropdown.login = false
-      this.state.dropdown.register = !this.state.dropdown.register
-    } else if (!logincont.contains(e.target) && !registercont.contains(e.target)) {
-      this.state.dropdown.login = false
-      this.state.dropdown.register = false
+      dd.login = false
+      dd.register = !dd.register
+    } else if (e.target.id === 'settingsdd') {
+      dd.settings = !dd.settings
+    } else if (logincont && registercont && !logincont.contains(e.target) && !registercont.contains(e.target)) {
+      dd.login = false
+      dd.register = false
+    } else if (settingscont && !settingscont.contains(e.target)) {
+      dd.settings = false
     }
     this.setState(this.state)
   }

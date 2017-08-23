@@ -8,13 +8,18 @@ export default (props) =>
     ? <div></div>
     : props.user.isLoggedIn
       ? <div className='flex'>
-          <div className='btn'>cart ()</div>
-          <div className='btn'>{props.user.username}</div>
+          <a className='btn link' href='#'>cart{props.user.cartcount === 0 ? '' : '(' + props.user.cartcount + ')'}</a>
+          <div>
+            <div className='btn' id='settingsdd'>{props.user.username}</div>
+            <div className={props.dropdown.settings ? 'dropdown' : 'hidden'} id='settingscont'>
+              <div className='btn'>logout</div>
+            </div>
+          </div>
         </div>
       : <div className='flex'>
           <div>
             <div className='btn' id='registerdd'>register</div>
-            <div className={props.dropdown.register ? 'dropdown' : 'dropdown hidden'} id='registercont'>
+            <div className={props.dropdown.register ? 'dropdown box' : 'hidden'} id='registercont'>
               <input type='text' />
               <div className='spacev1'></div>
               <input type='text' />
@@ -26,7 +31,7 @@ export default (props) =>
           </div>
           <div>
             <div className='btn' id='logindd'>login</div>
-            <div className={props.dropdown.login ? 'dropdown' : 'dropdown hidden'} id='logincont'>
+            <div className={props.dropdown.login ? 'dropdown box' : 'hidden'} id='logincont'>
               <input type='text' placeholder='username' />
               <div className='spacev1'></div>
               <input type='text' placeholder='password' />

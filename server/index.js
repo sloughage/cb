@@ -3,12 +3,25 @@ const app = new Koa()
 const static = require('koa-static')
 const send = require('koa-send')
 const router = require('koa-router')()
+// const session = require('koa-session')
+const mongoose = require('mongoose')
+// const parser = require('koa-bodyparser')
 
-const Search = require('./api/search.js')
+mongoose.Promise = global.Promise
+mongoose.connect('mongodb://localhost/cb')
 
-router.use('/api/search', Search.routes())
+const SearchCont = require('./api/search.js')
+router.use('/api/search', SearchCont.routes())
+
+const UserCont = require('./api/user.js')
+router.use('/api/user', UserCont.routes())
+
+const ListingCont = require('./api/listing.js')
+router.use('/api/listing', ListingCont.routes())
 
 app
+  // .use(session(app))
+  // .use(parser())
   .use(router.routes())
   // .use(router.allowedMethods())
   .use(static('build'))
