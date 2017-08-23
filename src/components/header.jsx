@@ -4,7 +4,7 @@ import Loading from './loading.jsx'
 export default (props) =>
   <div className='header'>
     <a href='#'><div className='logo'></div></a>
-    {props.isLoading
+    {Object.keys(props.user).length === 0
     ? <div></div>
     : props.user.isLoggedIn
       ? <div className='flex'>

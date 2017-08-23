@@ -14,9 +14,9 @@ class Main extends React.Component {
       user: {},
       categories: [],
       listings: [],
-      columns: [],
       input: '',
-      dropdown: {}
+      columns: ['title', 'by', 'tag', 'price'],
+      dropdown: {register: false, login: false, settings: false}
     }
     this.inputChange = this.inputChange.bind(this)
     this.clickVal = this.clickVal.bind(this)
@@ -25,10 +25,23 @@ class Main extends React.Component {
   }
 
   async componentDidMount () {
-    let data = await fetch('/api/search/load')
-    let json = await data.json()
-    this.setState(json.res)
+    await this.fetchMain()
+    await this.fetchUser()
     document.addEventListener('mousedown', this.clickHandler)
+  }
+
+  async fetchUser () {
+    let data = await fetch('/api/user')
+    let json = await data.json()
+    Object.assign(this.state, json.res)
+    this.setState(this.state)
+  }
+
+  async fetchMain () {
+    let data = await fetch('/api/search')
+    let json = await data.json()
+    Object.assign(this.state, json.res)
+    this.setState(this.state)
   }
 
   clickVal (i, j) {
@@ -89,21 +102,18 @@ class Main extends React.Component {
   render () { return (
     <div>
       <Header
-        isLoading={this.state.isLoading}
         user={this.state.user}
         dropdown={this.state.dropdown} />
       {this.state.isLoading
         ? <Loading />
         : <div className='flex body'>
             <Search
-              isLoading={this.state.isLoading}
               categories={this.state.categories}
               input={this.state.input}
               inputChange={this.inputChange}
               clickVal={this.clickVal}
               clickSearch={this.clickSearch} />
             <Listings
-              isLoading={this.state.isLoading}
               listings={this.state.listings}
               columns={this.state.columns} />
           </div>

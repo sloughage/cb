@@ -1,6 +1,7 @@
 const router = require('koa-router')()
-const Listing = require('../models/Listing.js')
 const bcrypt = require('bcryptjs')
+const Listing = require('../models/Listing.js')
+const User = require('../models/User.js')
 
 router.get('/', async ctx => {
   let listings = await Listing.find()
@@ -19,23 +20,35 @@ router.get('/:id', async ctx => {
   ctx.body = body
 })
 
+//make sure nothing is missing
+//set up authentication
 router.post('/', async ctx => {
   let body
   let query = ctx.request.query
-  let new_listing = await Listing.create(query)
-  body = {res: 'new listing', also: new_listing}
+  let userid = query.userid //replace with session
+  let title = query.title
+  let by = query.by.constructor === Array ? query.by : [query.by]
+  let tag = query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : []
+  let price = query.price
+  let new_listing = await Listing.create({userid, title, by, tag, price})
+  body = {message: 'new listing', listing: new_listing}
   ctx.body = body
+})
+
+router.delete('/', async ctx => {
+  let deleted_listings = await Listing.remove()
+  ctx.body = {message: 'all listings deleted'}
 })
 
 router.delete('/:id', async ctx => {
   let body
   let id = ctx.params.id
-  let user = await Listing.findOne({_id: id})
-  if (!user) {
+  let listing = await Listing.findOne({_id: id})
+  if (!listing) {
     body = {message: 'listing not found'}
   } else {
-    let deleted_user = await Listing.remove({_id: id})
-    body = {message: 'deleted'}
+    let deleted_listing = await Listing.remove({_id: id})
+    body = {message: 'listing deleted'}
   }
   ctx.body = body
 })

@@ -3,9 +3,14 @@ const User = require('../models/User.js')
 const bcrypt = require('bcryptjs')
 
 router.get('/', async ctx => {
+  // let user = {isLoggedIn: true, userid: 1234, username: 'bill69', cartcount: 2}
+  let user = {isLoggedIn: false}
+  ctx.body = {res: {user: user}}
+})
+
+router.get('/all', async ctx => {
   let users = await User.find()
-  let userlist = users.map(u => u.username)
-  ctx.body = {res: userlist}
+  ctx.body = {res: users}
 })
 
 router.post('/register/:username/:password', async ctx => {
@@ -22,7 +27,7 @@ router.post('/register/:username/:password', async ctx => {
       username: username,
       password: hash
     })
-    body = {message: 'registered'}
+    body = {message: 'registered', user: new_user}
   }
   ctx.body = body
 })
@@ -49,10 +54,15 @@ router.post('/logout', async ctx => {
   ctx.body = {message: 'logged out'}
 })
 
-router.delete('/:username', async ctx => {
-  let username = ctx.params.username
-  let deleted_user = await User.remove({username: username})
-  ctx.body = {message: 'deleted'}
+router.delete('/', async ctx => {
+  let deleted_users = await User.remove()
+  ctx.body = {message: 'all users deleted'}
+})
+
+router.delete('/:id', async ctx => {
+  let id = ctx.params.id
+  let deleted_user = await User.remove({_id: id})
+  ctx.body = {message: 'user deleted'}
 })
 
 
