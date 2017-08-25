@@ -1,8 +1,6 @@
 const router = require('koa-router')()
 const Listing = require('../models/Listing.js')
 
-// router.get('/load', async ctx => {ctx.body = {res: require('./testdata.js')}})
-
 router.get('/', async ctx => {
   let search = []
   let query = standardizeQuery(ctx.request.query)
@@ -32,6 +30,7 @@ function standardizeQuery (query) {
 function makeCategories (query, listings) {
   return [
     { name: 'title',
+      open: true,
       values: listings
         .map(x => x.title)
         .sort()
@@ -39,6 +38,7 @@ function makeCategories (query, listings) {
         .map(x => ({v: x, sel: x === query.title}))
     },
     { name: 'by',
+      open: true,
       values: listings
         .map(x => x.by)
         .reduce((a, b) => a.concat(b))
@@ -47,6 +47,7 @@ function makeCategories (query, listings) {
         .map(x => ({v: x, sel: Boolean(query.by) && query.by.includes(x)}))
     },
     { name: 'tag',
+      open: true,
       values: listings
         .map(x => x.tag)
         .reduce((a, b) => a.concat(b))

@@ -11,21 +11,23 @@ body, div, p, input {
   font-size: 1em;
 }
 
-html, body, #main, .listings {
+html, body, #main {
   width: 100%;
 }
 
 input {
   border: solid @base 1px;
   width: 8em;
+  margin-bottom: .5em;
 }
 
 .body {
   padding: .5em;
 }
 
-.listings {
+.block {
   margin: .5em;
+  width: 100%;
 }
 
 .flex {
@@ -83,12 +85,15 @@ input {
 
 .unsel {
   cursor: pointer;
-  margin-left: .5em;
 }
 
 .sel {
-  .unsel;
+  cursor: pointer;
   background-color: @trim;
+}
+
+.indent {
+  padding-left: .5em;
 }
 
 .trow {
@@ -127,6 +132,7 @@ input {
   display: flex;
   width: 100%;
   justify-content: center;
+  margin-top: .5em;
 }
 
 .loadingcont {

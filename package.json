@@ -20,7 +20,7 @@
     "koa-send": "^4.1.0",
     "koa-session": "^5.5.0",
     "koa-static": "^4.0.1",
-    "mongoose": "^4.11.7",
+    "mongoose": "^4.10.8",
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
   },

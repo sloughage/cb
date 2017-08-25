@@ -3,9 +3,9 @@ const User = require('../models/User.js')
 const bcrypt = require('bcryptjs')
 
 router.get('/', async ctx => {
-  // let user = {isLoggedIn: true, userid: 1234, username: 'bill69', cartcount: 2}
-  let user = {isLoggedIn: false}
-  ctx.body = {res: {user: user}}
+  let user = ctx.session.user
+  if (user) ctx.body = {res: user}
+  else ctx.body = {res: {isLoggedIn: false}}
 })
 
 router.get('/all', async ctx => {
@@ -14,12 +14,11 @@ router.get('/all', async ctx => {
 })
 
 router.post('/register/:username/:password', async ctx => {
-  let body
   let username = ctx.params.username
   let password = ctx.params.password
   let existing_user = await User.findOne({username: username})
   if (existing_user) {
-    body = {message: 'username in use'}
+    ctx.body = {message: 'username in use'}
   } else {
     let salt = await bcrypt.genSalt(10)
     let hash = await bcrypt.hash(password, salt)
@@ -27,130 +26,54 @@ router.post('/register/:username/:password', async ctx => {
       username: username,
       password: hash
     })
-    body = {message: 'registered', user: new_user}
+    ctx.session.user = {
+      isLoggedIn: true,
+      id: new_user.id,
+      username: new_user.username,
+      cartcount: 0
+    }
+    ctx.body = {message: 'registered', res: ctx.session.user}
   }
-  ctx.body = body
 })
 
 router.post('/login/:username/:password', async ctx => {
-  let body
   let username = ctx.params.username
   let password = ctx.params.password
   let user = await User.findOne({username: username})
   if (user === null) {
-    body = {message: 'username and password not found'}
+    ctx.body = {message: 'username and password not found'}
   } else {
     let arePasswordsEqual = await bcrypt.compare(password, user.password)
     if (arePasswordsEqual) {
-      body = {message: 'logged in'}
+      ctx.session.user = {
+        isLoggedIn: true,
+        id: user.id,
+        username: user.username,
+        cartcount: user.cart ? user.cart.length : 0
+      }
+      ctx.body = {message: 'logged in', res: ctx.session.user}
     } else {
-      body = {message: 'username and password not found'}
+      ctx.body = {message: 'username and password not found'}
     }
   }
-  ctx.body = body
 })
 
 router.post('/logout', async ctx => {
-  ctx.body = {message: 'logged out'}
+  ctx.session = null
+  ctx.body = {message: 'logged out', res: {isLoggedIn: false}}
 })
 
 router.delete('/', async ctx => {
-  let deleted_users = await User.remove()
+  await User.remove()
+  ctx.session = null
   ctx.body = {message: 'all users deleted'}
 })
 
 router.delete('/:id', async ctx => {
   let id = ctx.params.id
-  let deleted_user = await User.remove({_id: id})
+  if (ctx.session.user && ctx.session.user.id === id) ctx.session = null
+  await User.remove({_id: id})
   ctx.body = {message: 'user deleted'}
 })
-
-
-// router.get('/register', (req, res) => {
-//   res.render('register', {
-//     isLoggedIn: req.session.isLoggedIn
-//   })
-// })
-
-// router.post('/register', (req, res) => {
-//   User.findOne({username: req.body.username})
-//   .then(user => {
-//     return bcrypt.genSalt(10)
-//   }).then(salt => {
-//     return bcrypt.hash(req.body.password, salt)
-//   }).then(hash => {
-//     return User.create({
-//       username: req.body.username,
-//       password: hash
-//     })
-//   }).then(user => {
-//     req.session.username = user.username
-//     req.session.userId = user._id
-//     req.session.isLoggedIn = true
-//     res.send('registered')
-//   }).catch(err => {
-//     res.send(err)
-//   })
-// })
-
-// router.get('/login', (req, res) => {
-//   res.render('login', {
-//     isLoggedIn: req.session.isLoggedIn
-//   })
-// })
-
-// router.post('/login', (req, res) => {
-//   let tuser
-//   User.findOne({username: req.body.username})
-//   .then(user => {
-//     tuser = user
-//     return bcrypt.compare(req.body.password, tuser.password)
-//   }).then(isMatch => {
-//     if (isMatch) {
-//       req.session.username = tuser.username
-//       req.session.userId = tuser.id
-//       req.session.isLoggedIn = true
-//       res.send('logged in')
-//     } else {
-//       res.send('username/password incorrect')
-//     }
-//   }).catch(err => {
-//     res.send(err)
-//   })
-// })
-
-// router.post('/logout', (req, res) => {
-//   req.session.destroy(err => {
-//     if (err) {
-//       res.send(err)
-//     } else {
-//       res.send('logged out')
-//     }
-//   })
-// })
-
-// router.get('/users', (req, res) => {
-//   User.find()
-//   .then(users => {
-//     res.render('users', {
-//       isLoggedIn: req.session.isLoggedIn,
-//       users: users
-//     })
-//   }).catch(err => {
-//     res.send(err)
-//   })
-// })
-
-// router.get('/:username', (req, res) => {
-//   User.findOne({username: req.params.username})
-//   .then(user => {
-//     res.render('user', {
-//       isLoggedIn: req.session.isLoggedIn,
-//       user: user
-//     })
-//   })
-// }).catch(err => {
-//   res.send(err)
-// })
 
 module.exports = router
