@@ -2,38 +2,39 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Header from './components/header.jsx'
-import Search from './components/search.jsx'
+import Filter from './components/filter.jsx'
 import Listings from './components/listings.jsx'
+import Search from './components/search.jsx'
 import Loading from './components/loading.jsx'
 
 class Main extends React.Component {
   constructor () {
     super()
     this.state = {
+      format: '',
       isLoading: true,
       user: {},
       categories: [],
       listings: [],
       input: '',
-      columns: ['title', 'by', 'tag', 'price'],
-      register: {open: false, username: '', password: ''},
-      login: {open: false, username: '', password: ''},
-      settings: {open: false}
+      columns: ['title', 'by', 'tag', 'seller', 'price'],
+      dd: {
+        register: {open: false, username: '', password: ''},
+        login: {open: false, username: '', password: ''},
+        settings: {open: false}
+      }
     }
     this.inputChangeSearch = this.inputChangeSearch.bind(this)
-    this.clickVal = this.clickVal.bind(this)
-    this.clickCat = this.clickCat.bind(this)
-    this.clickSearch = this.clickSearch.bind(this)
-    this.clickLogout = this.clickLogout.bind(this)
-    this.clickLogin = this.clickLogin.bind(this)
-    this.clickRegister = this.clickRegister.bind(this)
+    this.clickFilter = this.clickFilter.bind(this)
     this.clickHandler = this.clickHandler.bind(this)
     this.inputChangeHeader = this.inputChangeHeader.bind(this)
+    this.clickSearch = this.clickSearch.bind(this)
+    this.clickHeader = this.clickHeader.bind(this)
   }
 
   async componentDidMount () {
-    await this.fetchMain()
     await this.fetchUser()
+    await this.fetchMain()
     document.addEventListener('mousedown', this.clickHandler)
   }
 
@@ -47,6 +48,10 @@ class Main extends React.Component {
   }
 
   async fetchMain () {
+    let pathname = window.location.pathname.slice(1)
+    if (!pathname) {
+      this.state.format = 'landing'
+    }
     let data = await fetch('/api/search')
     let json = await data.json()
     if (json.res) {
@@ -55,16 +60,15 @@ class Main extends React.Component {
     }
   }
 
-  clickVal (i, j) {
-    let values = this.state.categories[i].values
-    values[j].sel = !values[j].sel
-    if (i === 0) values.forEach((x, k) => {if (k !== j) values[k].sel = false})
-    this.setState(this.state)
-  }
-
-  clickCat (i) {
-    let cat = this.state.categories[i]
-    cat.open = !cat.open
+  clickFilter (i, j) {
+    if (typeof j === 'undefined') {
+      let cat = this.state.categories[i]
+      cat.open = !cat.open
+    } else {
+      let values = this.state.categories[i].values
+      values[j].sel = !values[j].sel
+      if (i === 0) values.forEach((x, k) => {if (k !== j) values[k].sel = false})
+    }
     this.setState(this.state)
   }
 
@@ -73,19 +77,17 @@ class Main extends React.Component {
     this.setState(this.state)
   }
 
-  getString () {
-    return this.state.categories
+  async clickSearch (f) {
+    this.state.isLoading = true
+    this.setState(this.state)
+    let input = this.state.input ? 'input=' + encodeURIComponent(this.state.input) : ''
+    let filter = this.state.categories
       .map(cat => cat.values
         .filter(value => value.sel)
         .map(value => encodeURIComponent(cat.name) + '=' + encodeURIComponent(value.v))
       ).reduce((a, b) => a.concat(b), [])
       .join('&')
-  }
-
-  async clickSearch () {
-    let uri = '/api/search?' + this.getString()
-    this.state.isLoading = true
-    this.setState(this.state)
+    let uri = '/api/search?' + input + (input && filter && f ? '&' : '') + (f ? filter : '')
     let data = await fetch(uri)
     let json = await data.json()
     if (json.res) {
@@ -94,74 +96,50 @@ class Main extends React.Component {
     }
   }
 
-  async clickLogin () {
-    let uri = '/api/user/login/' + this.state.login.username + '/' + this.state.login.password
-    let data = await fetch(uri, {method: 'post'})
-    let json = await data.json()
-    if (json.res) {
-      this.state.user = json.res
-      this.closeLogin()
-      this.closeRegister()
-      this.setState(this.state)
-    }
+  dd (cat, toggle) {
+    let c = this.state.dd[cat]
+    for (let p in c) {c[p] = (p === 'open' ? (toggle ? !c[p] : false) : '')}
   }
 
-  inputChangeHeader (e, dd, field) {
-    this.state[dd][field] = e.target.value
+  inputChangeHeader (e, cat, field) {
+    this.state.dd[cat][field] = e.target.value
     this.setState(this.state)
   }
 
-  async clickLogout () {
-    let data = await fetch('/api/user/logout', {method: 'post'})
-    let json = await data.json()
-    if (json.res) {
-      this.state.user = json.res
-      this.state.settings.open = false
-      this.setState(this.state)
-    }
-  }
-
-  async clickRegister () {
-    let uri = '/api/user/register/' + this.state.register.username + '/' + this.state.register.password
+  async clickHeader (btn) {
+    let uri = '/api/user/'
+    let dd = this.state.dd
+    if (btn === 'login') uri += 'login/' + dd.login.username + '/' + dd.login.password
+    else if (btn === 'logout') uri += 'logout'
+    else if (btn === 'register') uri += 'register/' + dd.register.username + '/' + dd.register.password
     let data = await fetch(uri, {method: 'post'})
     let json = await data.json()
     if (json.res) {
       this.state.user = json.res
-      this.closeRegister()
-      this.closeLogin()
+      this.dd('login')
+      this.dd('register')
+      this.dd('settings')
       this.setState(this.state)
     }
   }
 
-  closeRegister () {
-    this.state.register.username = ''
-    this.state.register.password = ''
-    this.state.register.open = false
-  }
-
-  closeLogin () {
-    this.state.login.username = ''
-    this.state.login.password = ''
-    this.state.login.open = false
-  }
-
   clickHandler (e) {
-    let logincont = document.getElementById('logincont')
-    let registercont = document.getElementById('registercont')
-    let settingscont = document.getElementById('settingscont')
+    let login = document.getElementById('logincont')
+    let register = document.getElementById('registercont')
+    let settings = document.getElementById('settingscont')
     if (e.target.id === 'logindd') {
-      this.state.login.open = !this.state.login.open
-      this.closeRegister()
+      this.dd('login', true)
+      this.dd('register')
     } else if (e.target.id === 'registerdd') {
-      this.closeLogin()
-      this.state.register.open = !this.state.register.open
+      this.dd('login')
+      this.dd('register', true)
     } else if (e.target.id === 'settingsdd') {
-      this.state.settings.open = !this.state.settings.open
-    } else if (logincont && registercont && !logincont.contains(e.target) && !registercont.contains(e.target)) {
-      this.closeLogin()
-      this.closeRegister()
-    } else if (settingscont && !settingscont.contains(e.target)) {
-      this.state.settings.open = false
+      this.dd('settings', true)
+    } else if (login && register && !login.contains(e.target) && !register.contains(e.target)) {
+      this.dd('login')
+      this.dd('register')
+    } else if (settings && !settings.contains(e.target)) {
+      this.dd('settings')
     }
     this.setState(this.state)
   }
@@ -170,25 +148,29 @@ class Main extends React.Component {
     <div>
       <Header
         user={this.state.user}
-        register={this.state.register}
-        login={this.state.login}
-        settings={this.state.settings}
-        clickLogin={this.clickLogin}
-        clickRegister={this.clickRegister}
+        dd={this.state.dd}
         inputChange={this.inputChangeHeader}
-        clickLogout={this.clickLogout} />
+        clickHeader={this.clickHeader} />
       <div className='flex body'>
-        <Search
+        <Filter
           categories={this.state.categories}
-          input={this.state.input}
-          inputChange={this.inputChangeSearch}
           clickVal={this.clickVal}
           clickCat={this.clickCat}
+          clickFilter={this.clickFilter}
           clickSearch={this.clickSearch} />
-        <Listings
-          isLoading={this.state.isLoading}
-          listings={this.state.listings}
-          columns={this.state.columns} />
+        <div className='stretch block'>
+          <Search
+            input={this.input}
+            inputChange={this.inputChangeSearch}
+            clickSearch={this.clickSearch} />
+          { this.state.isLoading
+          ? <Loading />
+          : <Listings
+              isLoading={this.state.isLoading}
+              listings={this.state.listings}
+              columns={this.state.columns} />
+          }
+        </div>
       </div>
     </div>
   )}

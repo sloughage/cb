@@ -11,7 +11,7 @@ body, div, p, input {
   font-size: 1em;
 }
 
-html, body, #main {
+html, body, #main, .stretch {
   width: 100%;
 }
 
@@ -19,6 +19,13 @@ input {
   border: solid @base 1px;
   width: 8em;
   margin-bottom: .5em;
+}
+
+#search {
+  min-width: 8em;
+  width: 100%;
+  align-self: center;
+  margin: auto 1em auto 0;
 }
 
 .body {
@@ -78,9 +85,16 @@ input {
   background-color: green;
 }
 
-.searchblock {
+.filterblock {
   width: 10em;
   margin: .5em;
+}
+
+.searchblock {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1em;
 }
 
 .unsel {
