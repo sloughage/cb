@@ -6,6 +6,7 @@ import Filter from './components/filter.jsx'
 import Listings from './components/listings.jsx'
 import Search from './components/search.jsx'
 import Loading from './components/loading.jsx'
+import NewListing from './components/newListing.jsx'
 
 class Main extends React.Component {
   constructor () {
@@ -22,14 +23,22 @@ class Main extends React.Component {
         register: {open: false, username: '', password: ''},
         login: {open: false, username: '', password: ''},
         settings: {open: false}
+      },
+      newListing: {
+        title: '',
+        by: [''],
+        tag: [''],
+        price: ''
       }
     }
-    this.inputChangeSearch = this.inputChangeSearch.bind(this)
-    this.clickFilter = this.clickFilter.bind(this)
-    this.clickHandler = this.clickHandler.bind(this)
     this.inputChangeHeader = this.inputChangeHeader.bind(this)
-    this.clickSearch = this.clickSearch.bind(this)
+    this.inputChangeNew = this.inputChangeNew.bind(this)
+    this.inputChangeSearch = this.inputChangeSearch.bind(this)
+    this.clickHandler = this.clickHandler.bind(this)
     this.clickHeader = this.clickHeader.bind(this)
+    this.clickPost = this.clickPost.bind(this)
+    this.clickSearch = this.clickSearch.bind(this)
+    this.clickFilter = this.clickFilter.bind(this)
   }
 
   async componentDidMount () {
@@ -58,6 +67,26 @@ class Main extends React.Component {
       Object.assign(this.state, json.res)
       this.setState(this.state)
     }
+  }
+
+  inputChangeNew (e, field, i) {
+    if (e) {
+      if (i) this.state.newListing[field][i] = e.target.value
+      else this.state.newListing[field] = e.target.value
+    } else {
+      if (i) this.state.newListing[field].splice(i, 1)
+      else this.state.newListing[field].push('')
+    }
+    this.setState(this.state)
+  }
+
+  clickPost () {
+    this.state.isLoading = true
+    this.setState(this.state)
+    let nl = this.state.newListing
+    // let data = Object.keys(nl)
+    //   .map(k => encodeURIComponent(nl[k]) + '=' + encodeURIComponent(nl))
+    let uri = '/api/listing?' +
   }
 
   clickFilter (i, j) {
@@ -166,12 +195,15 @@ class Main extends React.Component {
           { this.state.isLoading
           ? <Loading />
           : <Listings
-              isLoading={this.state.isLoading}
               listings={this.state.listings}
               columns={this.state.columns} />
           }
         </div>
       </div>
+      <NewListing
+        newListing={this.state.newListing}
+        inputChange={this.inputChangeNew}
+        clickPost={this.clickPost} />
     </div>
   )}
 }

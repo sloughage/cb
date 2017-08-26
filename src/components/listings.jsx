@@ -1,5 +1,4 @@
 import React from 'react'
-import Loading from './loading.jsx'
 
 export default (props) =>
   <div>

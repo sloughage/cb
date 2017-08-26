@@ -12,14 +12,14 @@ app.keys = ['secret']
 mongoose.Promise = global.Promise
 mongoose.connect('mongodb://localhost/cb')
 
-const SearchCont = require('./api/search.js')
-router.use('/api/search', SearchCont.routes())
+const Search = require('./api/search.js')
+router.use('/api/search', Search.routes())
 
-const UserCont = require('./api/user.js')
-router.use('/api/user', UserCont.routes())
+const User = require('./api/user.js')
+router.use('/api/user', User.routes())
 
-const ListingCont = require('./api/listing.js')
-router.use('/api/listing', ListingCont.routes())
+const Listing = require('./api/listing.js')
+router.use('/api/listing', Listing.routes())
 
 app
   .use(session(app))

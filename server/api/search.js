@@ -17,7 +17,14 @@ router.get('/', async ctx => {
   query.tag.forEach(x => {search.push({tag: x})})
   let searchobj = search.length > 0 ? {$and: search} : {}
   let listings = await Listing.find(searchobj)
-  listings = listings.map(x => ({title: x.title, by: x.by, tag: x.tag, seller: x.userid, price: x.price}))
+  listings = listings.map(x => ({
+    title: x.title,
+    by: x.by,
+    tag: x.tag,
+    seller: x.username,
+    price: x.price,
+    id: x.id
+  }))
   let search_results = {
     listings,
     categories: makeCategories(query, listings),

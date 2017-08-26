@@ -23,16 +23,19 @@ router.get('/:id', async ctx => {
 //make sure nothing is missing
 //set up authentication
 router.post('/', async ctx => {
-  let body
-  let query = ctx.request.query
-  let userid = query.userid //replace with session
-  let title = query.title
-  let by = query.by.constructor === Array ? query.by : [query.by]
-  let tag = query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : []
-  let price = query.price
-  let new_listing = await Listing.create({userid, title, by, tag, price})
-  body = {message: 'new listing', listing: new_listing}
-  ctx.body = body
+  if (ctx.session.isLoggedIn) {
+    let query = ctx.request.query
+    let userid = ctx.session.id
+    let username = ctx.session.username
+    let title = query.title
+    let by = query.by.constructor === Array ? query.by : [query.by]
+    let tag = query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : []
+    let price = query.price
+    let new_listing = await Listing.create({userid, username, title, by, tag, price})
+    ctx.body = {message: 'new listing', res: new_listing}
+  } else {
+    ctx.body = {message: 'not logged in'}
+  }
 })
 
 router.delete('/', async ctx => {
