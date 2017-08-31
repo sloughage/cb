@@ -71,7 +71,7 @@ class Main extends React.Component {
 
   inputChangeNew (e, field, i) {
     if (e) {
-      if (i) this.state.newListing[field][i] = e.target.value
+      if (typeof i !== 'undefined') this.state.newListing[field][i] = e.target.value
       else this.state.newListing[field] = e.target.value
     } else {
       if (i) this.state.newListing[field].splice(i, 1)
@@ -81,12 +81,17 @@ class Main extends React.Component {
   }
 
   clickPost () {
-    this.state.isLoading = true
-    this.setState(this.state)
     let nl = this.state.newListing
-    // let data = Object.keys(nl)
-    //   .map(k => encodeURIComponent(nl[k]) + '=' + encodeURIComponent(nl))
-    let uri = '/api/listing?' +
+    let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
+    let data = Object.keys(nl)
+      .map(k => {
+        if (nl[k].constructor === Array) return nl[k].filter(v => v).map(v => print(k, v))
+        else if (nl[k]) return print(k, nl[k])
+      }).reduce((a, b) => a.concat(b), [])
+      .filter(x => x)
+      .join('&')
+    let uri = '/api/listing?' + data
+    console.log(uri)
   }
 
   clickFilter (i, j) {
