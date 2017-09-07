@@ -6,6 +6,7 @@ const router = require('koa-router')()
 const session = require('koa-session')
 const mongoose = require('mongoose')
 // const parser = require('koa-bodyparser')
+const delay = require('koa-delay')
 
 app.keys = ['secret']
 
@@ -22,10 +23,11 @@ const Listing = require('./api/listing.js')
 router.use('/api/listing', Listing.routes())
 
 app
+  // .use(delay(200, 800))
   .use(session(app))
   // .use(parser())
   .use(router.routes())
-  // .use(router.allowedMethods())
+  .use(router.allowedMethods())
   .use(static('build'))
   .use(async ctx => {await send(ctx, 'build/index.html')})
   .listen(3000)

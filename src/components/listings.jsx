@@ -1,7 +1,7 @@
 import React from 'react'
 
 export default (props) =>
-  <div>
+  <div className='stretch'>
     { props.listings.length === 0
     ? <div>no results found</div>
     : <div>
@@ -14,7 +14,7 @@ export default (props) =>
           <a className='listing' href='#' key={i}>
             { props.columns.map((c, i) =>
               <div className='tcell' key={i}>
-                { l[c].constructor === Array
+                { l[c] instanceof Array
                 ? l[c].map((v, i) => <p key={i}>{v}</p>)
                 : <p>{l[c]}</p>
                 }

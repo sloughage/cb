@@ -27,8 +27,7 @@ router.get('/', async ctx => {
   }))
   let search_results = {
     listings,
-    categories: makeCategories(query, listings),
-    isLoading: false
+    categories: makeCategories(query, listings)
   }
   ctx.body = {res: search_results}
 })
