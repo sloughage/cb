@@ -1,4 +1,4 @@
 import React from 'react'
 
 export default () =>
-  <div>404</div>
+  <div>401</div>

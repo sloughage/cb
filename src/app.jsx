@@ -6,16 +6,19 @@ import Filter from './components/filter.jsx'
 import Listings from './components/listings.jsx'
 import Search from './components/search.jsx'
 import Loading from './components/loading.jsx'
+import Listing from './components/listing.jsx'
 import NewListing from './components/newListing.jsx'
 import Home from './components/home.jsx'
 import NotFound from './components/notFound.jsx'
+import AccessDenied from './components/accessDenied.jsx'
+import User from './components/user.jsx'
+import Cart from './components/cart.jsx'
 
 class Main extends React.Component {
   constructor () {
     super()
     this.state = {
-      format: this.getFormat(),
-      isLoading: true,
+      format: 'loading',
       user: {},
       dropdown: {
         register: {open: false, username: '', password: ''},
@@ -24,10 +27,10 @@ class Main extends React.Component {
       },
       listing: {},
       newListing: {title: '', by: [''], tag: [''], price: ''},
+      profile: {},
       input: '',
       categories: [],
-      listings: [],
-      columns: ['title', 'by', 'tag', 'seller', 'price']
+      listings: []
     }
     this.clickHandler = this.clickHandler.bind(this)
     this.inputChangeHeader = this.inputChangeHeader.bind(this)
@@ -39,12 +42,10 @@ class Main extends React.Component {
     this.clickFilter = this.clickFilter.bind(this)
   }
 
-  getFormat () {
+  getFormat (url) {
     let list = ['search', 'listing', 'user', 'new']
-    let pathname = window.location.pathname.slice(1)
-    let path = pathname.split(/[/?]+/)[0]
-    if (list.includes(path)) return path
-    else if (!path) return 'home'
+    if (!url) return 'home'
+    else if (list.some(x => url.startsWith(x))) return 'loading'
     else return '404'
   }
 
@@ -54,12 +55,12 @@ class Main extends React.Component {
   }
 
   async componentDidMount () {
-    this.fetchUser()
-    this.fetchMain()
+    this.loadUser()
+    this.loadMain(window.location.pathname.slice(1), window.location.search)
     document.addEventListener('mousedown', this.clickHandler)
   }
 
-  async fetchUser () {
+  async loadUser () {
     let data = await fetch('/api/user', {credentials: 'include'})
     let json = await data.json()
     if (json.res) {
@@ -68,15 +69,52 @@ class Main extends React.Component {
     }
   }
 
-  async fetchMain () {
-    let list = ['home', '404', 'new']
-    let pathname = window.location.pathname.slice(1)
-    if (!list.includes(this.state.format)) {
+  async loadMain (pathname, search='') {
+    if (!pathname) {
+      this.state.format = 'home'
+    } else if (pathname.startsWith('search')) {
+      let data = await fetch('/api/' + pathname + search)
+      let json = await data.json()
+      if (json.res) {
+        Object.assign(this.state, json.res)
+        this.state.format = 'search'
+      }
+    } else if (pathname.startsWith('listing')) {
       let data = await fetch('/api/' + pathname)
       let json = await data.json()
-      if (json.res) Object.assign(this.state, json.res)
+      if (json.res) {
+        Object.assign(this.state, json.res)
+        this.state.format = 'listing'
+      }
+    } else if (pathname.startsWith('user')) {
+      console.log('user')
+      console.log(pathname)
+      let data = await fetch('/api/' + pathname)
+      let json = await data.json()
+      if (json.err) {
+        console.log(json.err)
+      } else if (json.res) {
+        this.state.profile = json.res
+        this.state.format = 'user'
+      }
+    } else if (pathname === 'new') {
+      let data = await fetch('/api/user')
+      let json = await data.json()
+      if (json.res) {
+        this.state.format = 'new'
+      }
+    } else if (pathname === 'cart') {
+      let data = await fetch('/api/user/cart', {credentials: 'include'})
+      let json = await data.json()
+      console.log(json)
+      if (json.err) {
+      } else if (json.res) {
+        this.state.cart = json.res
+      }
+      this.state.format = 'cart'
     }
-    this.state.isLoading = false
+    console.log(this.state.format)
+    if (this.state.format === 'loading') this.state.format = '404'
     this.setState(this.state)
   }
 
@@ -107,16 +145,21 @@ class Main extends React.Component {
   }
 
   async clickHeader (btn) {
-    let uri = '/api/user/' + btn
-    uri += btn !== 'logout' ? '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password : ''
-    let data = await fetch(uri, {method: 'post', credentials: 'include'})
-    let json = await data.json()
-    if (json.res) {
-      this.state.user = json.res
-      this.dropdown('login')
-      this.dropdown('register')
-      this.dropdown('settings')
+    if (btn === 'home') {
+      this.state.format = 'home'
       this.setState(this.state)
+    } else {
+      let uri = '/api/user/' + btn
+      uri += btn !== 'logout' ? '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password : ''
+      let data = await fetch(uri, {method: 'post', credentials: 'include'})
+      let json = await data.json()
+      if (json.res) {
+        this.state.user = json.res
+        this.dropdown('login')
+        this.dropdown('register')
+        this.dropdown('settings')
+        this.setState(this.state)
+      }
     }
   }
 
@@ -144,7 +187,11 @@ class Main extends React.Component {
     let url = '/api/listing?' + query
     let data = await fetch(url, {method: 'post', credentials: 'include'})
     let json = await data.json()
-    console.log(json.message)
+    if (json.err) {
+      console.log(json.err)
+    } else if (json.res) {
+      console.log(json.res)
+    }
   }
 
   inputChangeSearch (e) {
@@ -153,7 +200,7 @@ class Main extends React.Component {
   }
 
   async clickSearch (f) {
-    this.state.isLoading = true
+    this.state.format = 'loading'
     this.setState(this.state)
     let input = this.state.input ? 'input=' + encodeURIComponent(this.state.input) : ''
     let filter = this.state.categories
@@ -167,7 +214,7 @@ class Main extends React.Component {
     let json = await data.json()
     if (json.res) {
       Object.assign(this.state, json.res)
-      this.state.isLoading = false
+      this.state.format = 'search'
       this.setState(this.state)
     }
   }
@@ -187,7 +234,7 @@ class Main extends React.Component {
   render () { return (
     <div>
       <Header user={this.state.user} dropdown={this.state.dropdown} inputChange={this.inputChangeHeader} clickHeader={this.clickHeader} />
-      { this.state.isLoading
+      { this.state.format === 'loading'
       ? <Loading />
       : this.state.format === 'home'
       ? <div className='padded'>
@@ -195,15 +242,25 @@ class Main extends React.Component {
           <Home />
         </div>
       : this.state.format === 'new'
-      ? <NewListing newListing={this.state.newListing} inputChange={this.inputChangeNew} clickPost={this.clickPost} />
+        ? this.state.user.isLoggedIn
+        ? <NewListing newListing={this.state.newListing} inputChange={this.inputChangeNew} clickPost={this.clickPost} />
+        : <AccessDenied />
       : this.state.format === 'search'
       ? <div className='padded'>
           <Search input={this.state.input} inputChange={this.inputChangeSearch} clickSearch={this.clickSearch} />
           <div className='flex'>
             <Filter categories={this.state.categories} clickFilter={this.clickFilter} clickSearch={this.clickSearch} />
-            <Listings listings={this.state.listings} columns={this.state.columns} />
+            <Listings listings={this.state.listings} columns={['title', 'by', 'tag', 'seller', 'price']} />
           </div>
         </div>
+      : this.state.format === 'listing'
+      ? <Listing listing={this.state.listing} />
+      : this.state.format === 'user'
+      ? <User user={this.state.profile} />
+      : this.state.format === 'cart'
+        ? this.state.user.isLoggedIn
+        ? <Cart listings={this.state.cart} />
+        : <AccessDenied />
       : <NotFound />
       }
     </div>

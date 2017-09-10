@@ -1,5 +1,6 @@
 const router = require('koa-router')()
 const User = require('../models/User.js')
+const Listing = require('../models/Listing.js')
 const bcrypt = require('bcryptjs')
 
 router.get('/', async ctx => {
@@ -11,6 +12,74 @@ router.get('/', async ctx => {
 router.get('/all', async ctx => {
   let users = await User.find()
   ctx.body = {res: users}
+})
+
+router.get('/:id', async ctx => {
+  let id = ctx.params.id
+  let user = await User.findOne({_id: id})
+  console.log(user)
+  if (!user) {
+    ctx.body = {err: 'user not found'}
+  } else {
+    ctx.body = {res: {
+      id: user._id,
+      username: user.username
+    }}
+  }
+})
+
+router.get('/cart', async ctx => {
+  let user = ctx.session.user
+  if (!user || !user.isLoggedIn) {
+    ctx.body = {err: 'not logged in'}
+  } else {
+    user = await User.findOne({id: user._id})
+    let cart = []
+    for (let x of user.cart) {
+      let listing = await Listing.findOne({_id: x})
+      if (listing) cart.push({
+        title: listing.title,
+        by: listing.by,
+        tag: listing.tag,
+        price: listing.price,
+        seller: listing.username,
+        id: listing.id
+      })
+    }
+    ctx.body = {res: cart}
+  }
+})
+
+router.put('/cart/:id', async ctx => {
+  let user = ctx.session.user
+  let id = ctx.params.id
+  if (!user || !user.isLoggedIn) {
+    ctx.body = {err: 'not logged in'}
+  } else {
+    let dbres = await User.updateOne({_id: user.id}, {$addToSet: {cart: id}})
+    ctx.body = {message: dbres.nModified ? 'added to cart' : 'already in cart'}
+  }
+})
+
+router.delete('/cart', async ctx => {
+  let user = ctx.session.user
+  if (!user || !user.isLoggedIn) {
+    ctx.body = {err: 'not logged in'}
+  } else {
+    let dbres = await User.updateOne({_id: user.id}, {$set: {cart: []}})
+    ctx.body = {message: 'deleted cart'}
+  }
+})
+
+router.delete('/cart/:id', async ctx => {
+  let user = ctx.session.user
+  let id = ctx.params.id
+  if (!user || !user.isLoggedIn) {
+    ctx.body = {err: 'not logged in'}
+  } else {
+    let dbres = await User.updateOne({_id: user.id}, {$pull: {cart: id}})
+    ctx.body = {message: 'deleted from cart'}
+  }
 })
 
 router.post('/register/:username/:password', async ctx => {
@@ -30,8 +99,7 @@ router.post('/register/:username/:password', async ctx => {
     let user = {
       isLoggedIn: true,
       id: new_user.id,
-      username: new_user.username,
-      cartcount: 0
+      username: new_user.username
     }
     ctx.session.user = user
     ctx.body = {message: 'registered', res: user}
@@ -41,7 +109,6 @@ router.post('/register/:username/:password', async ctx => {
 router.post('/login/:username/:password', async ctx => {
   let username = ctx.params.username
   let password = ctx.params.password
-  console.log(ctx.header)
   let existing_user = await User.findOne({username: username})
   if (!existing_user) {
     ctx.body = {message: 'username not found'}

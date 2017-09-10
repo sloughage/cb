@@ -11,13 +11,15 @@ router.get('/', async ctx => {
 router.get('/:id', async ctx => {
   let id = ctx.params.id
   let listing = await Listing.findOne({_id: id})
-  if (listing) ctx.body = {res: listing}
-  else ctx.body = {message: 'listing not found'}
+  if (!listing) ctx.body = {message: 'listing not found', res: {format: '404'}}
+  else ctx.body = {res: {listing}}
 })
 
 router.post('/', async ctx => {
   let user = ctx.session.user
-  if (user && user.isLoggedIn) {
+  if (!user || !user.isLoggedIn) {
+    ctx.body = {err: 'not logged in'}
+  } else {
     let query = ctx.request.query
     let userid = user.id
     let username = user.username
@@ -27,8 +29,6 @@ router.post('/', async ctx => {
     let price = query.price
     let listing = await Listing.create({userid, username, title, by, tag, price})
     ctx.body = {message: 'listing posted', res: listing}
-  } else {
-    ctx.body = {message: 'not logged in'}
   }
 })
 
