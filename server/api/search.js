@@ -2,34 +2,29 @@ const router = require('koa-router')()
 const Listing = require('../models/Listing.js')
 
 router.get('/', async ctx => {
-  let search = []
-  let query = standardizeQuery(ctx.request.query)
-  query.input.forEach(x => {
-    let rx = new RegExp('(?:^| )' + x + '(?: |$)')
-    search.push({$or: [
-      {title: {$regex: rx, $options: 'i'}},
-      {by: {$regex: rx, $options: 'i'}},
-      {tag: {$regex: rx, $options: 'i'}}
-    ]})
-  })
-  if (query.title) search.push({title: query.title})
-  query.by.forEach(x => {search.push({by: x})})
-  query.tag.forEach(x => {search.push({tag: x})})
-  let searchobj = search.length > 0 ? {$and: search} : {}
-  let listings = await Listing.find(searchobj)
-  listings = listings.map(x => ({
-    title: x.title,
-    by: x.by,
-    tag: x.tag,
-    seller: x.username,
-    price: x.price,
-    id: x.id
-  }))
-  let search_results = {
-    listings,
-    categories: makeCategories(query, listings)
+  try {
+    let search = []
+    let query = standardizeQuery(ctx.request.query)
+    query.input.forEach(x => {
+      let rx = new RegExp('(?:^| )' + x + '(?: |$)')
+      search.push({$or: [
+        {title: {$regex: rx, $options: 'i'}},
+        {by: {$regex: rx, $options: 'i'}},
+        {tag: {$regex: rx, $options: 'i'}}
+      ]})
+    })
+    if (query.title) search.push({title: query.title})
+    query.by.forEach(x => {search.push({by: x})})
+    query.tag.forEach(x => {search.push({tag: x})})
+    let db_listings = await Listing.find(search.length > 0 ? {$and: search} : {})
+    ctx.body = {res: {
+      input: query.input ? query.input.join(' ') : '',
+      listings: makeListings(db_listings),
+      categories: makeCategories(query, db_listings)
+    }}
+  } catch (err) {
+    ctx.body = {err}
   }
-  ctx.body = {res: search_results}
 })
 
 function standardizeQuery (query) {
@@ -41,35 +36,32 @@ function standardizeQuery (query) {
   }
 }
 
+function makeListings (dbres) {
+  return dbres.map(x => ({
+    title: x.title,
+    by: x.by,
+    tag: x.tag,
+    seller: x.username,
+    price: x.price,
+    id: x.id
+  }))
+}
+
 function makeCategories (query, listings) {
-  return [
-    { name: 'title',
+  return ['title', 'by', 'tag']
+    .map(cat => ({
+      name: cat,
       open: true,
       values: listings
-        .map(x => x.title)
-        .sort()
-        .filter((x, i, a) => !i || x != a[i - 1])
-        .map(x => ({v: x, sel: x === query.title}))
-    },
-    { name: 'by',
-      open: true,
-      values: listings
-        .map(x => x.by)
+        .map(x => x[cat])
         .reduce((a, b) => a.concat(b), [])
         .sort()
         .filter((x, i, a) => !i || x != a[i - 1])
-        .map(x => ({v: x, sel: Boolean(query.by) && query.by.includes(x)}))
-    },
-    { name: 'tag',
-      open: true,
-      values: listings
-        .map(x => x.tag)
-        .reduce((a, b) => a.concat(b), [])
-        .sort()
-        .filter((x, i, a) => !i || x != a[i - 1])
-        .map(x => ({v: x, sel: Boolean(query.tag) && query.tag.includes(x)}))
-    }
-  ]
+        .map(x => ({
+          v: x,
+          sel: query[cat] instanceof Array ? query[cat].includes(x) : x === query[cat]
+        }))
+    }))
 }
 
 module.exports = router

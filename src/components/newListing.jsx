@@ -16,5 +16,5 @@ export default (props) =>
       </div>
     )}
     <div><input type='text' value={props.newListing.price} placeholder='price ($)' onChange={(e) => props.inputChange(e, 'price')}/></div>
-    <div className='flex'><div className='btn' onClick={() => props.clickPost()}>post</div></div>
+    <div className='flex'><div className='btn' onClick={() => props.clickBtn('post')}>post</div></div>
   </div>

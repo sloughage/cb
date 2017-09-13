@@ -16,7 +16,7 @@ export default (props) =>
         </div>
       )}
       <div className='btncont'>
-        <div className='btn' onClick={() => props.clickSearch(true)}>filter</div>
+        <div className='btn' onClick={() => props.clickBtn('search', true)}>filter</div>
       </div>
     </div>
   </div>

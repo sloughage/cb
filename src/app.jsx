@@ -33,28 +33,12 @@ class Main extends React.Component {
       listings: []
     }
     this.clickHandler = this.clickHandler.bind(this)
-    this.inputChangeHeader = this.inputChangeHeader.bind(this)
-    this.clickHeader = this.clickHeader.bind(this)
-    this.inputChangeNew = this.inputChangeNew.bind(this)
-    this.clickPost = this.clickPost.bind(this)
-    this.clickSearch = this.clickSearch.bind(this)
-    this.inputChangeSearch = this.inputChangeSearch.bind(this)
     this.clickFilter = this.clickFilter.bind(this)
+    this.clickBtn = this.clickBtn.bind(this)
+    this.inputChange = this.inputChange.bind(this)
   }
 
-  getFormat (url) {
-    let list = ['search', 'listing', 'user', 'new']
-    if (!url) return 'home'
-    else if (list.some(x => url.startsWith(x))) return 'loading'
-    else return '404'
-  }
-
-  dropdown (cat, toggle) {
-    let c = this.state.dropdown[cat]
-    for (let p in c) {c[p] = (p === 'open' ? (toggle ? !c[p] : false) : '')}
-  }
-
-  async componentDidMount () {
+  componentDidMount () {
     this.loadUser()
     this.loadMain(window.location.pathname.slice(1), window.location.search)
     document.addEventListener('mousedown', this.clickHandler)
@@ -63,7 +47,9 @@ class Main extends React.Component {
   async loadUser () {
     let data = await fetch('/api/user', {credentials: 'include'})
     let json = await data.json()
-    if (json.res) {
+    if (json.err) {
+      console.log(json.err)
+    } else if (json.res) {
       this.state.user = json.res
       this.setState(this.state)
     }
@@ -76,7 +62,9 @@ class Main extends React.Component {
       let data = await fetch('/api/' + pathname + search)
       let json = await data.json()
       if (json.res) {
-        Object.assign(this.state, json.res)
+        this.state.listings = json.res.listings
+        this.state.categories = json.res.categories
+        this.state.input = json.res.input
         this.state.format = 'search'
       }
     } else if (pathname.startsWith('listing')) {
@@ -87,8 +75,6 @@ class Main extends React.Component {
         this.state.format = 'listing'
       }
     } else if (pathname.startsWith('user')) {
-      console.log('user')
-      console.log(pathname)
       let data = await fetch('/api/' + pathname)
       let json = await data.json()
       if (json.err) {
@@ -98,73 +84,57 @@ class Main extends React.Component {
         this.state.format = 'user'
       }
     } else if (pathname === 'new') {
-      let data = await fetch('/api/user')
-      let json = await data.json()
-      if (json.res) {
-        this.state.format = 'new'
-      }
+      this.state.format = 'new'
     } else if (pathname === 'cart') {
       let data = await fetch('/api/user/cart', {credentials: 'include'})
       let json = await data.json()
-      console.log(json)
-      if (json.err) {
-      } else if (json.res) {
-        this.state.cart = json.res
-      }
+      if (json.res) this.state.cart = json.res
+      else console.log(json.err)
       this.state.format = 'cart'
     }
-    console.log(this.state.format)
     if (this.state.format === 'loading') this.state.format = '404'
     this.setState(this.state)
   }
 
+  redirect (url) {
+    this.state.format = 'loading'
+    this.setState(this.state)
+    window.history.pushState(null, null, url || '/')
+    this.loadMain(...url.split(/(?=\?)/))
+  }
+
   clickHandler (e) {
+    let dropdown = this.state.dropdown
+    function dd (cat, toggle) {
+      let c = dropdown[cat]
+      for (let p in c) {c[p] = p === 'open' ? toggle ? !c[p] : false : ''}
+    }
     let login = document.getElementById('logincont')
     let register = document.getElementById('registercont')
     let settings = document.getElementById('settingscont')
-    if (e.target.id === 'logindd') {
-      this.dropdown('login', true)
-      this.dropdown('register')
-    } else if (e.target.id === 'registerdd') {
-      this.dropdown('login')
-      this.dropdown('register', true)
-    } else if (e.target.id === 'settingsdd') {
-      this.dropdown('settings', true)
+    if (e.target.id === 'login') {
+      dd('login', true)
+      dd('register')
+    } else if (e.target.id === 'register') {
+      dd('login')
+      dd('register', true)
+    } else if (e.target.id === 'settings') {
+      dd('settings', true)
     } else if (login && register && !login.contains(e.target) && !register.contains(e.target)) {
-      this.dropdown('login')
-      this.dropdown('register')
+      dd('login')
+      dd('register')
     } else if (settings && !settings.contains(e.target)) {
-      this.dropdown('settings')
+      dd('settings')
     }
     this.setState(this.state)
   }
 
-  inputChangeHeader (e, cat, field) {
-    this.state.dropdown[cat][field] = e.target.value
-    this.setState(this.state)
-  }
-
-  async clickHeader (btn) {
-    if (btn === 'home') {
-      this.state.format = 'home'
-      this.setState(this.state)
-    } else {
-      let uri = '/api/user/' + btn
-      uri += btn !== 'logout' ? '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password : ''
-      let data = await fetch(uri, {method: 'post', credentials: 'include'})
-      let json = await data.json()
-      if (json.res) {
-        this.state.user = json.res
-        this.dropdown('login')
-        this.dropdown('register')
-        this.dropdown('settings')
-        this.setState(this.state)
-      }
-    }
-  }
-
-  inputChangeNew (e, field, i) {
-    if (e) {
+  inputChange (e, field, i, cat) {
+    if (!field) {
+      this.state.input = e.target.value
+    } else if (cat) {
+      this.state.dropdown[cat][field] = e.target.value
+    } else if (e) {
       if (typeof i !== 'undefined') this.state.newListing[field][i] = e.target.value
       else this.state.newListing[field] = e.target.value
     } else {
@@ -172,51 +142,6 @@ class Main extends React.Component {
       else this.state.newListing[field].push('')
     }
     this.setState(this.state)
-  }
-
-  async clickPost () {
-    let nl = this.state.newListing
-    let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
-    let query = Object.keys(nl)
-      .map(k => {
-        if (nl[k].constructor === Array) return nl[k].filter(x => x).map(v => print(k, v))
-        else if (nl[k]) return print(k, nl[k])
-      }).reduce((a, b) => a.concat(b), [])
-      .filter(x => x)
-      .join('&')
-    let url = '/api/listing?' + query
-    let data = await fetch(url, {method: 'post', credentials: 'include'})
-    let json = await data.json()
-    if (json.err) {
-      console.log(json.err)
-    } else if (json.res) {
-      console.log(json.res)
-    }
-  }
-
-  inputChangeSearch (e) {
-    this.state.input = e.target.value
-    this.setState(this.state)
-  }
-
-  async clickSearch (f) {
-    this.state.format = 'loading'
-    this.setState(this.state)
-    let input = this.state.input ? 'input=' + encodeURIComponent(this.state.input) : ''
-    let filter = this.state.categories
-      .map(cat => cat.values
-        .filter(value => value.sel)
-        .map(value => encodeURIComponent(cat.name) + '=' + encodeURIComponent(value.v))
-      ).reduce((a, b) => a.concat(b), [])
-      .join('&')
-    let url = '/api/search?' + input + (input && filter && f ? '&' : '') + (f ? filter : '')
-    let data = await fetch(url)
-    let json = await data.json()
-    if (json.res) {
-      Object.assign(this.state, json.res)
-      this.state.format = 'search'
-      this.setState(this.state)
-    }
   }
 
   clickFilter (i, j) {
@@ -231,35 +156,92 @@ class Main extends React.Component {
     this.setState(this.state)
   }
 
+  async clickBtn (btn, z) {
+    if (btn === 'home') {
+      this.state.input = ''
+      this.redirect('')
+    } else if (btn === 'login' || btn === 'register' || btn === 'logout') {
+      let url = '/api/user/' + btn
+      if (btn !== 'logout') url += '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password
+      let data = await fetch(url, {method: 'post', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) {
+        console.log(json.err)
+      } else if (json.res) {
+        this.state.user = json.res
+        for (let x in this.state.dropdown) {
+          for (let y in this.state.dropdown[x]) {
+            this.state.dropdown[x][y] = y === 'open' ? false : ''
+          }
+        }
+        if (this.state.format === 'cart') this.loadMain('cart')
+        else this.setState(this.state)
+      }
+    } else if (btn === 'search') {
+      let input = this.state.input ? 'input=' + encodeURIComponent(this.state.input) : ''
+      let filter = z && this.state.categories
+        .map(cat => cat.values
+          .filter(value => value.sel)
+          .map(value => encodeURIComponent(cat.name) + '=' + encodeURIComponent(value.v))
+        ).reduce((a, b) => a.concat(b), [])
+        .join('&')
+      let url = 'search?' + [input, filter].filter(x => x).join('&')
+      this.redirect(url)
+    } else if (btn === 'post') {
+      let nl = this.state.newListing
+      let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
+      let query = Object.keys(nl)
+        .map(k => {
+          if (nl[k].constructor === Array) return nl[k].filter(x => x).map(v => print(k, v))
+          else if (nl[k]) return print(k, nl[k])
+        }).reduce((a, b) => a.concat(b), [])
+        .filter(x => x)
+        .join('&')
+      let url = '/api/listing?' + query
+      let data = await fetch(url, {method: 'post', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) console.log(json.err)
+      else if (json.res) this.redirect('listing/' + json.res._id)
+    } else if (btn === 'new') {
+      this.redirect('new')
+    } else if (btn === 'cart') {
+      this.redirect('cart')
+    } else if (btn === 'remove') {
+      console.log('remove/' + z)
+    } else if (btn === 'listing') {
+      this.redirect('listing/' + z)
+    }
+  }
+
   render () { return (
     <div>
-      <Header user={this.state.user} dropdown={this.state.dropdown} inputChange={this.inputChangeHeader} clickHeader={this.clickHeader} />
+      <Header user={this.state.user} dropdown={this.state.dropdown} inputChange={this.inputChange} clickBtn={this.clickBtn} />
       { this.state.format === 'loading'
       ? <Loading />
       : this.state.format === 'home'
       ? <div className='padded'>
-          <Search input={this.state.input} inputChange={this.inputChangeSearch} clickSearch={this.clickSearch} />
+          <Search input={this.state.input} inputChange={this.inputChange} clickBtn={this.clickBtn} />
           <Home />
         </div>
       : this.state.format === 'new'
         ? this.state.user.isLoggedIn
-        ? <NewListing newListing={this.state.newListing} inputChange={this.inputChangeNew} clickPost={this.clickPost} />
+        ? <NewListing newListing={this.state.newListing} inputChange={this.inputChange} clickBtn={this.clickBtn} />
         : <AccessDenied />
       : this.state.format === 'search'
       ? <div className='padded'>
-          <Search input={this.state.input} inputChange={this.inputChangeSearch} clickSearch={this.clickSearch} />
+          <Search input={this.state.input} inputChange={this.inputChange} clickBtn={this.clickBtn} />
           <div className='flex'>
-            <Filter categories={this.state.categories} clickFilter={this.clickFilter} clickSearch={this.clickSearch} />
-            <Listings listings={this.state.listings} columns={['title', 'by', 'tag', 'seller', 'price']} />
+            <Filter categories={this.state.categories} clickFilter={this.clickFilter} clickBtn={this.clickBtn} />
+            <Listings listings={this.state.listings} columns={['title', 'by', 'tag', 'seller', 'price']} clickBtn={this.clickBtn} />
           </div>
         </div>
       : this.state.format === 'listing'
-      ? <Listing listing={this.state.listing} />
+      ? <Listing listing={this.state.listing} clickBtn={this.clickBtn} />
       : this.state.format === 'user'
       ? <User user={this.state.profile} />
       : this.state.format === 'cart'
         ? this.state.user.isLoggedIn
-        ? <Cart listings={this.state.cart} />
+        ? <Cart listings={this.state.cart} clickBtn={this.clickBtn} />
         : <AccessDenied />
       : <NotFound />
       }

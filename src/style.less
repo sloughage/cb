@@ -84,6 +84,7 @@ input {
 }
 
 .logo {
+  .pointer;
   width: 10em;
   height: 2em;
   background-color: green;
@@ -101,12 +102,16 @@ input {
   margin-bottom: 1em;
 }
 
-.unsel {
+.pointer {
   cursor: pointer;
 }
 
+.unsel {
+  .pointer;
+}
+
 .sel {
-  cursor: pointer;
+  .pointer;
   background-color: @trim;
 }
 
@@ -136,6 +141,13 @@ input {
 
 .tcell {
   width: 20%;
+}
+
+.cont1 {
+  display: flex;
+  width: 11em;
+  height: 100%;
+  margin: auto .5em;
 }
 
 .spacev1 {

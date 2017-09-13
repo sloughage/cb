@@ -14,71 +14,73 @@ router.get('/all', async ctx => {
   ctx.body = {res: users}
 })
 
+router.get('/cart', async ctx => {
+  try {
+    let user = ctx.session.user
+    let db_user = await User.findOne({id: user._id})
+    let db_listings = await Promise.all(
+      db_user.cart.map(async x => {
+        try {return await Listing.findOne({_id: x})}
+        catch (err) {return null}
+      }))
+    let cart = db_listings
+      .filter(x => x)
+      .map(x => ({
+        title: x.title,
+        by: x.by,
+        tag: x.tag,
+        price: x.price,
+        seller: x.username,
+        id: x.id
+      }))
+    ctx.body = {res: cart}
+  } catch (err) {
+    ctx.body = {err: 'not logged in'}
+  }
+})
+
 router.get('/:id', async ctx => {
-  let id = ctx.params.id
-  let user = await User.findOne({_id: id})
-  console.log(user)
-  if (!user) {
-    ctx.body = {err: 'user not found'}
-  } else {
+  try {
+    let id = ctx.params.id
+    let user = await User.findOne({_id: id})
     ctx.body = {res: {
       id: user._id,
       username: user.username
     }}
-  }
-})
-
-router.get('/cart', async ctx => {
-  let user = ctx.session.user
-  if (!user || !user.isLoggedIn) {
-    ctx.body = {err: 'not logged in'}
-  } else {
-    user = await User.findOne({id: user._id})
-    let cart = []
-    for (let x of user.cart) {
-      let listing = await Listing.findOne({_id: x})
-      if (listing) cart.push({
-        title: listing.title,
-        by: listing.by,
-        tag: listing.tag,
-        price: listing.price,
-        seller: listing.username,
-        id: listing.id
-      })
-    }
-    ctx.body = {res: cart}
+  } catch (err) {
+    ctx.body = {err: 'user not found'}
   }
 })
 
 router.put('/cart/:id', async ctx => {
-  let user = ctx.session.user
-  let id = ctx.params.id
-  if (!user || !user.isLoggedIn) {
+  try {
+    let user = ctx.session.user
+    let id = ctx.params.id
+    let db_res = await User.updateOne({_id: user.id}, {$addToSet: {cart: id}})
+    ctx.body = {message: db_res.nModified ? 'added to cart' : 'already in cart'}
+  } catch (err) {
     ctx.body = {err: 'not logged in'}
-  } else {
-    let dbres = await User.updateOne({_id: user.id}, {$addToSet: {cart: id}})
-    ctx.body = {message: dbres.nModified ? 'added to cart' : 'already in cart'}
   }
 })
 
 router.delete('/cart', async ctx => {
-  let user = ctx.session.user
-  if (!user || !user.isLoggedIn) {
-    ctx.body = {err: 'not logged in'}
-  } else {
+  try {
+    let user = ctx.session.user
     let dbres = await User.updateOne({_id: user.id}, {$set: {cart: []}})
     ctx.body = {message: 'deleted cart'}
+  } catch (err) {
+    ctx.body = {err: 'not logged in'}
   }
 })
 
 router.delete('/cart/:id', async ctx => {
-  let user = ctx.session.user
-  let id = ctx.params.id
-  if (!user || !user.isLoggedIn) {
-    ctx.body = {err: 'not logged in'}
-  } else {
-    let dbres = await User.updateOne({_id: user.id}, {$pull: {cart: id}})
+  try {
+    let user = ctx.session.user
+    let id = ctx.params.id
+    let db_res = await User.updateOne({_id: user.id}, {$pull: {cart: id}})
     ctx.body = {message: 'deleted from cart'}
+  } catch (err) {
+    ctx.body = {err: 'not logged in'}
   }
 })
 
@@ -110,13 +112,9 @@ router.post('/login/:username/:password', async ctx => {
   let username = ctx.params.username
   let password = ctx.params.password
   let existing_user = await User.findOne({username: username})
-  if (!existing_user) {
-    ctx.body = {message: 'username not found'}
-  } else {
+  if (existing_user) {
     let arePasswordsEqual = await bcrypt.compare(password, existing_user.password)
-    if (!arePasswordsEqual) {
-      ctx.body = {message: 'password incorrect'}
-    } else {
+    if (arePasswordsEqual) {
       let user = {
         isLoggedIn: true,
         id: existing_user.id,
@@ -125,7 +123,11 @@ router.post('/login/:username/:password', async ctx => {
       }
       ctx.session.user = user
       ctx.body = {message: 'logged in', res: user}
+    } else {
+      ctx.body = {err: 'password incorrect'}
     }
+  } else {
+    ctx.body = {err: 'username not found'}
   }
 })
 
