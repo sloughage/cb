@@ -7,12 +7,10 @@ router.get('/', async ctx => {
     let query = standardize.query(ctx.request.query)
     let search_obj = standardize.searchObj(query)
     let db_listings = await Listing.find(search_obj)
-    let search_res = {
-      input: query.input.join(' '),
-      listings: standardize.listings(db_listings),
-      categories: standardize.categories(query, db_listings)
-    }
-    ctx.body = {res: search_res}
+    let input = query.input.join(' ')
+    let listings = standardize.listings(db_listings)
+    let categories = standardize.categories(query, db_listings)
+    ctx.body = {input, listings, categories}
   } catch (err) {
     ctx.body = {err}
   }

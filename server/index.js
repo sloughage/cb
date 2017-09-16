@@ -1,3 +1,4 @@
+require('dotenv').config()
 const Koa = require('koa')
 const app = new Koa()
 const static = require('koa-static')
@@ -8,10 +9,13 @@ const mongoose = require('mongoose')
 // const parser = require('koa-bodyparser')
 const delay = require('koa-delay')
 
+const port = process.env.PORT || 3000
+const db_host = process.env.DB_HOST || 'mongodb://localhost/cb'
+
 app.keys = ['secret']
 
 mongoose.Promise = Promise
-mongoose.connect('mongodb://localhost/cb')
+mongoose.connect(db_host)
 
 const Search = require('./api/search.js')
 const User = require('./api/user.js')
@@ -28,4 +32,4 @@ app
   .use(router.allowedMethods())
   .use(static('build'))
   .use(async ctx => {await send(ctx, 'build/index.html')})
-  .listen(3000)
+  .listen(port)

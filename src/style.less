@@ -1,6 +1,7 @@
 @trim: #DDD;
 @trim2: #BBB;
 @base: #000;
+@disabled: #DFF;
 
 body, div, p, input {
   padding: 0;
@@ -63,6 +64,15 @@ input {
   cursor: pointer;
   background-color: @trim;
   &:hover {background-color: @trim2}
+}
+
+.disabled {
+  display: flex;
+  align-items: center;
+  padding: 0 .5em;
+  height: 2em;
+  cursor: default;
+  background-color: @disabled;
 }
 
 .dropdown {

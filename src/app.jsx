@@ -11,6 +11,8 @@ import User from './components/user.jsx'
 import Cart from './components/cart.jsx'
 import NotFound from './components/notFound.jsx'
 
+import construct from './utility/construct.js'
+
 class Main extends React.Component {
   constructor () {
     super()
@@ -36,12 +38,12 @@ class Main extends React.Component {
   }
 
   async loadUser () {
-    let data = await fetch('/api/user', {credentials: 'include'})
-    let json = await data.json()
-    if (json.err) {
-      console.log(json.err)
-    } else if (json.res) {
-      this.state.user = json.res
+    let obj = await fetch('/api/user', {credentials: 'include'})
+    let res = await obj.json()
+    if (res.err) {
+      console.log(res.err)
+    } else {
+      this.state.user = res.user
       this.setState(this.state)
     }
   }
@@ -51,43 +53,45 @@ class Main extends React.Component {
       this.state.input = ''
       this.state.format = 'home'
     } else if (pathname.startsWith('search')) {
-      let data = await fetch('/api/' + pathname + search)
-      let json = await data.json()
-      if (json.err) {
-        console.log(json.err)
-      } else if (json.res) {
-        this.state.listings = json.res.listings
-        this.state.categories = json.res.categories
-        this.state.input = json.res.input
+      let obj = await fetch('/api/' + pathname + search)
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        this.state.listings = res.listings
+        this.state.categories = res.categories
+        this.state.input = res.input
         this.state.format = 'search'
       }
     } else if (pathname.startsWith('listing')) {
-      let data = await fetch('/api/' + pathname, {credentials: 'include'})
-      let json = await data.json()
-      if (json.err) {
-        console.log(json.err)
-      } else if (json.res) {
-        this.state.listing = json.res
+      let obj = await fetch('/api/' + pathname, {credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        this.state.listing = res.listing
         this.state.format = 'listing'
       }
     } else if (pathname.startsWith('user')) {
-      let data = await fetch('/api/' + pathname)
-      let json = await data.json()
-      if (json.err) {
-        console.log(json.err)
-      } else if (json.res) {
-        console.log(json.res)
-        this.state.profile = json.res
+      let obj = await fetch('/api/' + pathname)
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        this.state.profile = res.profile
         this.state.format = 'user'
       }
     } else if (pathname === 'new') {
-      this.state.rawListing = {title: '', by: [''], tag: [''], price: ''}
+      this.state.rawListing = construct.new()
       this.state.format = 'new'
     } else if (pathname === 'cart') {
-      let data = await fetch('/api/user/cart', {credentials: 'include'})
-      let json = await data.json()
-      if (json.res) this.state.cart = json.res
-      else console.log(json.err)
+      let obj = await fetch('/api/user/cart', {credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        this.state.cart = res.cart
+      }
       this.state.format = 'cart'
     }
     if (this.state.format === 'loading') this.state.format = '404'
@@ -127,6 +131,7 @@ class Main extends React.Component {
     this.setState(this.state)
   }
 
+
   inputChange (e, field, i, cat) {
     if (!field) {
       this.state.input = e.target.value
@@ -143,6 +148,7 @@ class Main extends React.Component {
   }
 
   clickFilter (i, j) {
+    // let state = change.filter(i, j, this.state.categories)
     if (typeof j === 'undefined') {
       let cat = this.state.categories[i]
       cat.open = !cat.open
@@ -160,12 +166,12 @@ class Main extends React.Component {
     } else if (btn === 'login' || btn === 'register' || btn === 'logout') {
       let url = '/api/user/' + btn
       if (btn !== 'logout') url += '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password
-      let data = await fetch(url, {method: 'post', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) {
-        console.log(json.err)
-      } else if (json.res) {
-        this.state.user = json.res
+      let obj = await fetch(url, {method: 'post', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        this.state.user = res.user
         for (let x in this.state.dropdown) {
           for (let y in this.state.dropdown[x]) {
             this.state.dropdown[x][y] = y === 'open' ? false : ''
@@ -175,87 +181,63 @@ class Main extends React.Component {
         else this.setState(this.state)
       }
     } else if (btn === 'search') {
-      let input = this.state.input ? 'input=' + encodeURIComponent(this.state.input) : ''
-      let filter = z && this.state.categories
-        .map(cat => cat.values
-          .filter(value => value.sel)
-          .map(value => encodeURIComponent(cat.name) + '=' + encodeURIComponent(value.v))
-        ).reduce((a, b) => a.concat(b), [])
-        .join('&')
-      let url = 'search?' + [input, filter].filter(x => x).join('&')
-      this.redirect(url)
+      let search = construct.search(this.state, z)
+      this.redirect(search)
     } else if (btn === 'post') {
-      let rl = this.state.rawListing
-      let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
-      let query = Object.keys(rl)
-        .map(k => {
-          if (rl[k].constructor === Array) return rl[k].filter(x => x).map(v => print(k, v))
-          else if (rl[k]) return print(k, rl[k])
-        }).reduce((a, b) => a.concat(b), [])
-        .filter(x => x)
-        .join('&')
+      let query = construct.query(this.state.rawListing)
       let url = '/api/listing?' + query
-      let data = await fetch(url, {method: 'post', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) console.log(json.err)
-      else if (json.res) this.redirect('listing/' + json.res.id)
+      let obj = await fetch(url, {method: 'post', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) console.log(res.err)
+      else this.redirect('listing/' + res.user.id)
     } else if (btn === 'new') {
       this.redirect('new')
     } else if (btn === 'cart') {
       this.redirect('cart')
     } else if (btn === 'remove') {
       let url = '/api/user/cart/' + z
-      let data = await fetch(url, {method: 'delete', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) {
+      let obj = await fetch(url, {method: 'delete', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) {
         console.log(err)
       } else {
-        this.state.cart = this.state.cart.filter(listing => listing.id !== z)
+        this.state.cart = this.state.cart.filter(x => x.id !== z)
         this.setState(this.state)
       }
     } else if (btn === 'listing') {
       this.redirect('listing/' + z)
     } else if (btn === 'add') {
       let url = '/api/user/cart/' + this.state.listing._id
-      let data = await fetch(url, {method: 'put', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) console.log(json.err)
-      else if (json.message) console.log(json.message)
+      let obj = await fetch(url, {method: 'put', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) {
+        console.log(res.err)
+      } else {
+        console.log(res.message)
+      }
     } else if (btn === 'edit') {
       this.state.listing.edit = true
-      this.state.rawListing = {
-        title: this.state.listing.title,
-        by: this.state.listing.by,
-        tag: this.state.listing.tag,
-        price: this.state.listing.price
-      }
+      this.state.rawListing = construct.raw(this.state.listing)
       this.setState(this.state)
     } else if (btn === 'save') {
-      let rl = this.state.rawListing
-      let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
-      let query = Object.keys(rl)
-        .map(k => {
-          if (rl[k].constructor === Array) return rl[k].filter(x => x).map(v => print(k, v))
-          else if (rl[k]) return print(k, rl[k])
-        }).reduce((a, b) => a.concat(b), [])
-        .filter(x => x)
-        .join('&')
+      let query = construct.query(this.state.rawListing)
       let url = '/api/listing/' + this.state.listing.id + '?' + query
-      let data = await fetch(url, {method: 'put', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) console.log(json.err)
+      let obj = await fetch(url, {method: 'put', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) console.log(res.err)
       else {
-        this.state.listing = json.res
+        this.state.listing = res.listing
         this.setState(this.state)
       }
     } else if (btn === 'delete') {
       let url = '/api/listing/' + this.state.listing.id
-      let data = await fetch(url, {method: 'delete', credentials: 'include'})
-      let json = await data.json()
-      if (json.err) console.log(json.err)
+      let obj = await fetch(url, {method: 'delete', credentials: 'include'})
+      let res = await obj.json()
+      if (res.err) console.log(res.err)
       else this.redirect('')
     }
   }
+
 
   render () { return (
     <div>

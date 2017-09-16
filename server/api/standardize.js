@@ -10,6 +10,13 @@ standardize.listing = (db_listing) => ({
   id: db_listing._id
 })
 
+standardize.user = (db_user) => ({
+  isLoggedIn: true,
+  id: db_user._id,
+  username: db_user.username,
+  cart: db_user.cart
+})
+
 standardize.listings = (db_listings) => db_listings
   .map(x => standardize.listing(x))
 
