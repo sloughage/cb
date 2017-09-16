@@ -2,6 +2,7 @@ const router = require('koa-router')()
 const User = require('../models/User.js')
 const Listing = require('../models/Listing.js')
 const bcrypt = require('bcryptjs')
+const standardize = require('./standardize.js')
 
 router.get('/', async ctx => {
   let user = ctx.session.user
@@ -9,46 +10,19 @@ router.get('/', async ctx => {
   else ctx.body = {res: {isLoggedIn: false}}
 })
 
-router.get('/all', async ctx => {
-  let users = await User.find()
-  ctx.body = {res: users}
-})
-
 router.get('/cart', async ctx => {
   try {
     let user = ctx.session.user
-    let db_user = await User.findOne({id: user._id})
+    let db_user = await User.findOne({_id: user.id})
     let db_listings = await Promise.all(
       db_user.cart.map(async x => {
         try {return await Listing.findOne({_id: x})}
         catch (err) {return null}
       }))
-    let cart = db_listings
-      .filter(x => x)
-      .map(x => ({
-        title: x.title,
-        by: x.by,
-        tag: x.tag,
-        price: x.price,
-        seller: x.username,
-        id: x.id
-      }))
+    let cart = standardize.listings(db_listings.filter(x => x))
     ctx.body = {res: cart}
   } catch (err) {
     ctx.body = {err: 'not logged in'}
-  }
-})
-
-router.get('/:id', async ctx => {
-  try {
-    let id = ctx.params.id
-    let user = await User.findOne({_id: id})
-    ctx.body = {res: {
-      id: user._id,
-      username: user.username
-    }}
-  } catch (err) {
-    ctx.body = {err: 'user not found'}
   }
 })
 
@@ -63,16 +37,6 @@ router.put('/cart/:id', async ctx => {
   }
 })
 
-router.delete('/cart', async ctx => {
-  try {
-    let user = ctx.session.user
-    let dbres = await User.updateOne({_id: user.id}, {$set: {cart: []}})
-    ctx.body = {message: 'deleted cart'}
-  } catch (err) {
-    ctx.body = {err: 'not logged in'}
-  }
-})
-
 router.delete('/cart/:id', async ctx => {
   try {
     let user = ctx.session.user
@@ -81,6 +45,22 @@ router.delete('/cart/:id', async ctx => {
     ctx.body = {message: 'deleted from cart'}
   } catch (err) {
     ctx.body = {err: 'not logged in'}
+  }
+})
+
+router.get('/:id', async ctx => {
+  try {
+    let id = ctx.params.id
+    let db_user = await User.findOne({_id: id})
+    let db_listings = await Listing.find({userid: id})
+    let profile = {
+      id: id,
+      username: db_user.username,
+      listings: standardize.listings(db_listings)
+    }
+    ctx.body = {res: profile}
+  } catch (err) {
+    ctx.body = {err: 'user not found'}
   }
 })
 
@@ -112,28 +92,44 @@ router.post('/login/:username/:password', async ctx => {
   let username = ctx.params.username
   let password = ctx.params.password
   let existing_user = await User.findOne({username: username})
-  if (existing_user) {
+  if (!existing_user) {
+    ctx.body = {err: 'username not found'}
+  } else {
     let arePasswordsEqual = await bcrypt.compare(password, existing_user.password)
-    if (arePasswordsEqual) {
+    if (!arePasswordsEqual) {
+      ctx.body = {err: 'password incorrect'}
+    } else {
       let user = {
         isLoggedIn: true,
         id: existing_user.id,
-        username: existing_user.username,
-        cartcount: existing_user.cart.length
+        username: existing_user.username
       }
       ctx.session.user = user
       ctx.body = {message: 'logged in', res: user}
-    } else {
-      ctx.body = {err: 'password incorrect'}
     }
-  } else {
-    ctx.body = {err: 'username not found'}
   }
 })
 
 router.post('/logout', async ctx => {
   ctx.session.user = null
   ctx.body = {message: 'logged out', res: {isLoggedIn: false}}
+})
+
+// testing only
+
+router.get('/all', async ctx => {
+  let users = await User.find()
+  ctx.body = {res: users}
+})
+
+router.delete('/cart', async ctx => {
+  try {
+    let user = ctx.session.user
+    let dbres = await User.updateOne({_id: user.id}, {$set: {cart: []}})
+    ctx.body = {message: 'deleted cart'}
+  } catch (err) {
+    ctx.body = {err: 'not logged in'}
+  }
 })
 
 router.delete('/', async ctx => {
@@ -144,10 +140,9 @@ router.delete('/', async ctx => {
 
 router.delete('/:id', async ctx => {
   let id = ctx.params.id
-  let user = ctx.session.user
-  if (user && user.id === id) ctx.session.user = null
-  let del_user = await User.remove({_id: id})
-  ctx.body = {message: 'user deleted', res: del_user}
+  ctx.session.user = null
+  let db_res = await User.remove({_id: id})
+  ctx.body = {message: 'user deleted'}
 })
 
 module.exports = router

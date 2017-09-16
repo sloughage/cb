@@ -10,16 +10,14 @@ const delay = require('koa-delay')
 
 app.keys = ['secret']
 
-mongoose.Promise = global.Promise
+mongoose.Promise = Promise
 mongoose.connect('mongodb://localhost/cb')
 
 const Search = require('./api/search.js')
-router.use('/api/search', Search.routes())
-
 const User = require('./api/user.js')
-router.use('/api/user', User.routes())
-
 const Listing = require('./api/listing.js')
+router.use('/api/search', Search.routes())
+router.use('/api/user', User.routes())
 router.use('/api/listing', Listing.routes())
 
 app

@@ -2,17 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 import Header from './components/header.jsx'
-import Filter from './components/filter.jsx'
-import Listings from './components/listings.jsx'
-import Search from './components/search.jsx'
 import Loading from './components/loading.jsx'
+import Home from './components/home.jsx'
+import Search from './components/search.jsx'
 import Listing from './components/listing.jsx'
 import NewListing from './components/newListing.jsx'
-import Home from './components/home.jsx'
-import NotFound from './components/notFound.jsx'
-import AccessDenied from './components/accessDenied.jsx'
 import User from './components/user.jsx'
 import Cart from './components/cart.jsx'
+import NotFound from './components/notFound.jsx'
 
 class Main extends React.Component {
   constructor () {
@@ -24,13 +21,7 @@ class Main extends React.Component {
         register: {open: false, username: '', password: ''},
         login: {open: false, username: '', password: ''},
         settings: {open: false}
-      },
-      listing: {},
-      newListing: {title: '', by: [''], tag: [''], price: ''},
-      profile: {},
-      input: '',
-      categories: [],
-      listings: []
+      }
     }
     this.clickHandler = this.clickHandler.bind(this)
     this.clickFilter = this.clickFilter.bind(this)
@@ -57,21 +48,26 @@ class Main extends React.Component {
 
   async loadMain (pathname, search='') {
     if (!pathname) {
+      this.state.input = ''
       this.state.format = 'home'
     } else if (pathname.startsWith('search')) {
       let data = await fetch('/api/' + pathname + search)
       let json = await data.json()
-      if (json.res) {
+      if (json.err) {
+        console.log(json.err)
+      } else if (json.res) {
         this.state.listings = json.res.listings
         this.state.categories = json.res.categories
         this.state.input = json.res.input
         this.state.format = 'search'
       }
     } else if (pathname.startsWith('listing')) {
-      let data = await fetch('/api/' + pathname)
+      let data = await fetch('/api/' + pathname, {credentials: 'include'})
       let json = await data.json()
-      if (json.res) {
-        Object.assign(this.state, json.res)
+      if (json.err) {
+        console.log(json.err)
+      } else if (json.res) {
+        this.state.listing = json.res
         this.state.format = 'listing'
       }
     } else if (pathname.startsWith('user')) {
@@ -80,10 +76,12 @@ class Main extends React.Component {
       if (json.err) {
         console.log(json.err)
       } else if (json.res) {
+        console.log(json.res)
         this.state.profile = json.res
         this.state.format = 'user'
       }
     } else if (pathname === 'new') {
+      this.state.rawListing = {title: '', by: [''], tag: [''], price: ''}
       this.state.format = 'new'
     } else if (pathname === 'cart') {
       let data = await fetch('/api/user/cart', {credentials: 'include'})
@@ -99,7 +97,7 @@ class Main extends React.Component {
   redirect (url) {
     this.state.format = 'loading'
     this.setState(this.state)
-    window.history.pushState(null, null, url || '/')
+    window.history.pushState(null, null, '/' + url)
     this.loadMain(...url.split(/(?=\?)/))
   }
 
@@ -135,11 +133,11 @@ class Main extends React.Component {
     } else if (cat) {
       this.state.dropdown[cat][field] = e.target.value
     } else if (e) {
-      if (typeof i !== 'undefined') this.state.newListing[field][i] = e.target.value
-      else this.state.newListing[field] = e.target.value
+      if (typeof i !== 'undefined') this.state.rawListing[field][i] = e.target.value
+      else this.state.rawListing[field] = e.target.value
     } else {
-      if (i) this.state.newListing[field].splice(i, 1)
-      else this.state.newListing[field].push('')
+      if (i) this.state.rawListing[field].splice(i, 1)
+      else this.state.rawListing[field].push('')
     }
     this.setState(this.state)
   }
@@ -158,7 +156,6 @@ class Main extends React.Component {
 
   async clickBtn (btn, z) {
     if (btn === 'home') {
-      this.state.input = ''
       this.redirect('')
     } else if (btn === 'login' || btn === 'register' || btn === 'logout') {
       let url = '/api/user/' + btn
@@ -188,12 +185,12 @@ class Main extends React.Component {
       let url = 'search?' + [input, filter].filter(x => x).join('&')
       this.redirect(url)
     } else if (btn === 'post') {
-      let nl = this.state.newListing
+      let rl = this.state.rawListing
       let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
-      let query = Object.keys(nl)
+      let query = Object.keys(rl)
         .map(k => {
-          if (nl[k].constructor === Array) return nl[k].filter(x => x).map(v => print(k, v))
-          else if (nl[k]) return print(k, nl[k])
+          if (rl[k].constructor === Array) return rl[k].filter(x => x).map(v => print(k, v))
+          else if (rl[k]) return print(k, rl[k])
         }).reduce((a, b) => a.concat(b), [])
         .filter(x => x)
         .join('&')
@@ -201,48 +198,110 @@ class Main extends React.Component {
       let data = await fetch(url, {method: 'post', credentials: 'include'})
       let json = await data.json()
       if (json.err) console.log(json.err)
-      else if (json.res) this.redirect('listing/' + json.res._id)
+      else if (json.res) this.redirect('listing/' + json.res.id)
     } else if (btn === 'new') {
       this.redirect('new')
     } else if (btn === 'cart') {
       this.redirect('cart')
     } else if (btn === 'remove') {
-      console.log('remove/' + z)
+      let url = '/api/user/cart/' + z
+      let data = await fetch(url, {method: 'delete', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) {
+        console.log(err)
+      } else {
+        this.state.cart = this.state.cart.filter(listing => listing.id !== z)
+        this.setState(this.state)
+      }
     } else if (btn === 'listing') {
       this.redirect('listing/' + z)
+    } else if (btn === 'add') {
+      let url = '/api/user/cart/' + this.state.listing._id
+      let data = await fetch(url, {method: 'put', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) console.log(json.err)
+      else if (json.message) console.log(json.message)
+    } else if (btn === 'edit') {
+      this.state.listing.edit = true
+      this.state.rawListing = {
+        title: this.state.listing.title,
+        by: this.state.listing.by,
+        tag: this.state.listing.tag,
+        price: this.state.listing.price
+      }
+      this.setState(this.state)
+    } else if (btn === 'save') {
+      let rl = this.state.rawListing
+      let print = (a, b) => encodeURIComponent(a) + '=' + encodeURIComponent(b)
+      let query = Object.keys(rl)
+        .map(k => {
+          if (rl[k].constructor === Array) return rl[k].filter(x => x).map(v => print(k, v))
+          else if (rl[k]) return print(k, rl[k])
+        }).reduce((a, b) => a.concat(b), [])
+        .filter(x => x)
+        .join('&')
+      let url = '/api/listing/' + this.state.listing.id + '?' + query
+      let data = await fetch(url, {method: 'put', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) console.log(json.err)
+      else {
+        this.state.listing = json.res
+        this.setState(this.state)
+      }
+    } else if (btn === 'delete') {
+      let url = '/api/listing/' + this.state.listing.id
+      let data = await fetch(url, {method: 'delete', credentials: 'include'})
+      let json = await data.json()
+      if (json.err) console.log(json.err)
+      else this.redirect('')
     }
   }
 
   render () { return (
     <div>
-      <Header user={this.state.user} dropdown={this.state.dropdown} inputChange={this.inputChange} clickBtn={this.clickBtn} />
+      <Header
+        user={this.state.user}
+        dropdown={this.state.dropdown}
+        inputChange={this.inputChange}
+        clickBtn={this.clickBtn} />
       { this.state.format === 'loading'
       ? <Loading />
       : this.state.format === 'home'
-      ? <div className='padded'>
-          <Search input={this.state.input} inputChange={this.inputChange} clickBtn={this.clickBtn} />
-          <Home />
-        </div>
+      ? <Home
+          input={this.state.input}
+          inputChange={this.inputChange}
+          clickBtn={this.clickBtn} />
       : this.state.format === 'new'
-        ? this.state.user.isLoggedIn
-        ? <NewListing newListing={this.state.newListing} inputChange={this.inputChange} clickBtn={this.clickBtn} />
-        : <AccessDenied />
+      ? <NewListing
+          isLoggedIn={this.state.user.isLoggedIn}
+          rawListing={this.state.rawListing}
+          inputChange={this.inputChange}
+          clickBtn={this.clickBtn} />
       : this.state.format === 'search'
-      ? <div className='padded'>
-          <Search input={this.state.input} inputChange={this.inputChange} clickBtn={this.clickBtn} />
-          <div className='flex'>
-            <Filter categories={this.state.categories} clickFilter={this.clickFilter} clickBtn={this.clickBtn} />
-            <Listings listings={this.state.listings} columns={['title', 'by', 'tag', 'seller', 'price']} clickBtn={this.clickBtn} />
-          </div>
-        </div>
+      ? <Search
+          input={this.state.input}
+          inputChange={this.inputChange}
+          clickBtn={this.clickBtn}
+          categories={this.state.categories}
+          clickFilter={this.clickFilter}
+          listings={this.state.listings}
+          columns={['title', 'by', 'tag', 'seller', 'price']} />
       : this.state.format === 'listing'
-      ? <Listing listing={this.state.listing} clickBtn={this.clickBtn} />
+      ? <Listing
+          listing={this.state.listing}
+          clickBtn={this.clickBtn}
+          user={this.state.user}
+          rawListing={this.state.rawListing}
+          inputChange={this.inputChange} />
       : this.state.format === 'user'
-      ? <User user={this.state.profile} />
+      ? <User
+          user={this.state.profile}
+          clickBtn={this.clickBtn} />
       : this.state.format === 'cart'
-        ? this.state.user.isLoggedIn
-        ? <Cart listings={this.state.cart} clickBtn={this.clickBtn} />
-        : <AccessDenied />
+      ? <Cart
+          isLoggedIn={this.state.user.isLoggedIn}
+          listings={this.state.cart}
+          clickBtn={this.clickBtn} />
       : <NotFound />
       }
     </div>
