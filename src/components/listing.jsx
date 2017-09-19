@@ -18,7 +18,21 @@ export default (props) =>
       <p>${props.listing.price}</p>
       { props.user.isLoggedIn &&
       ( props.listing.userid === props.user.id
-      ? <div className='flex'><div className='btn' onClick={() => props.clickBtn('edit')}>edit</div></div>
-      : <div className='flex'><div className='btn' onClick={() => props.clickBtn('add')}>add to cart</div></div>
+      ? <div className='flex'>
+          <div className='btn' onClick={() => props.clickBtn('edit')}>
+            edit
+          </div>
+        </div>
+      : props.user.cart.includes(props.listing.id)
+      ? <div className='flex'>
+          <div className='btn' onClick={() => props.clickBtn('remove', props.listing.id)}>
+            remove from cart
+          </div>
+        </div>
+      : <div className='flex'>
+          <div className='btn' onClick={() => props.clickBtn('add')}>
+            add to cart
+          </div>
+        </div>
       )}
     </div>

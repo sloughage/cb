@@ -34,5 +34,11 @@ export default {
     by: [''],
     tag: [''],
     price: ''
+  }),
+
+  dropdown: () => ({
+    register: {open: false, username: '', password: ''},
+    login: {open: false, username: '', password: ''},
+    settings: {open: false}
   })
 }

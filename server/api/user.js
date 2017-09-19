@@ -12,9 +12,14 @@ function cycle (x) {
 
 
 router.get('/', async ctx => {
-  let user = ctx.session.user || {isLoggedIn: false}
-  // cycle(100000000)
-  ctx.body = {user}
+  let cookie_user = ctx.session.user
+  if (cookie_user && cookie_user.isLoggedIn) {
+    let db_user = await User.findOne({_id: cookie_user.id})
+    let user = standardize.user(db_user)
+    ctx.body = {user}
+  } else {
+    ctx.body = {user: {isLoggedIn: false}}
+  }
 })
 
 router.get('/cart', async ctx => {
@@ -38,8 +43,8 @@ router.put('/cart/:id', async ctx => {
     let user = ctx.session.user
     let id = ctx.params.id
     let db_res = await User.updateOne({_id: user.id}, {$addToSet: {cart: id}})
-    let message = db_res.nModified ? 'added to cart' : 'already in cart'
-    ctx.body = {message, id}
+    if (db_res.nModified) ctx.body = {message: 'added to cart', id}
+    else ctx.body = {message: 'already in cart'}
   } catch (err) {
     ctx.body = {err: 'not logged in'}
   }

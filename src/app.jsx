@@ -10,6 +10,7 @@ import NewListing from './components/newListing.jsx'
 import User from './components/user.jsx'
 import Cart from './components/cart.jsx'
 import NotFound from './components/notFound.jsx'
+import MessageBox from './components/messageBox.jsx'
 
 import construct from './utility/construct.js'
 
@@ -19,11 +20,8 @@ class Main extends React.Component {
     this.state = {
       format: 'loading',
       user: {},
-      dropdown: {
-        register: {open: false, username: '', password: ''},
-        login: {open: false, username: '', password: ''},
-        settings: {open: false}
-      }
+      message: null,
+      dropdown: construct.dropdown()
     }
     this.clickHandler = this.clickHandler.bind(this)
     this.clickFilter = this.clickFilter.bind(this)
@@ -98,7 +96,8 @@ class Main extends React.Component {
     this.setState(this.state)
   }
 
-  redirect (url) {
+  redirect (url, hold) {
+    if (!hold) this.state.message = []
     this.state.format = 'loading'
     this.setState(this.state)
     window.history.pushState(null, null, '/' + url)
@@ -106,31 +105,16 @@ class Main extends React.Component {
   }
 
   clickHandler (e) {
-    let dropdown = this.state.dropdown
-    function dd (cat, toggle) {
-      let c = dropdown[cat]
-      for (let p in c) {c[p] = p === 'open' ? toggle ? !c[p] : false : ''}
+    let cat = e.target.id
+    let list = ['login', 'register', 'settings']
+    let temp = list.includes(cat) ? this.state.dropdown[cat].open : undefined
+    let [lc, rc, sc] = list.map(x => document.getElementById(x + 'cont'))
+    if (![lc, rc, sc].some(x => x && x.contains(e.target))) {
+      this.state.dropdown = construct.dropdown()
+      if (typeof temp !== 'undefined') this.state.dropdown[cat].open = !temp
+      this.setState(this.state)
     }
-    let login = document.getElementById('logincont')
-    let register = document.getElementById('registercont')
-    let settings = document.getElementById('settingscont')
-    if (e.target.id === 'login') {
-      dd('login', true)
-      dd('register')
-    } else if (e.target.id === 'register') {
-      dd('login')
-      dd('register', true)
-    } else if (e.target.id === 'settings') {
-      dd('settings', true)
-    } else if (login && register && !login.contains(e.target) && !register.contains(e.target)) {
-      dd('login')
-      dd('register')
-    } else if (settings && !settings.contains(e.target)) {
-      dd('settings')
-    }
-    this.setState(this.state)
   }
-
 
   inputChange (e, field, i, cat) {
     if (!field) {
@@ -148,7 +132,6 @@ class Main extends React.Component {
   }
 
   clickFilter (i, j) {
-    // let state = change.filter(i, j, this.state.categories)
     if (typeof j === 'undefined') {
       let cat = this.state.categories[i]
       cat.open = !cat.open
@@ -164,22 +147,20 @@ class Main extends React.Component {
     if (btn === 'home') {
       this.redirect('')
     } else if (btn === 'login' || btn === 'register' || btn === 'logout') {
+      let cat = this.state.dropdown[btn]
       let url = '/api/user/' + btn
-      if (btn !== 'logout') url += '/' + this.state.dropdown[btn].username + '/' + this.state.dropdown[btn].password
+      if (btn !== 'logout') url += '/' + cat.username + '/' + cat.password
       let obj = await fetch(url, {method: 'post', credentials: 'include'})
       let res = await obj.json()
       if (res.err) {
-        console.log(res.err)
+        this.state.message = {text: res.err, type: 'err'}
       } else {
         this.state.user = res.user
-        for (let x in this.state.dropdown) {
-          for (let y in this.state.dropdown[x]) {
-            this.state.dropdown[x][y] = y === 'open' ? false : ''
-          }
-        }
+        this.state.dropdown = construct.dropdown()
+        this.state.message = {text: res.message, type: 'msg'}
         if (this.state.format === 'cart') this.loadMain('cart')
-        else this.setState(this.state)
       }
+      this.setState(this.state)
     } else if (btn === 'search') {
       let search = construct.search(this.state, z)
       this.redirect(search)
@@ -188,8 +169,14 @@ class Main extends React.Component {
       let url = '/api/listing?' + query
       let obj = await fetch(url, {method: 'post', credentials: 'include'})
       let res = await obj.json()
-      if (res.err) console.log(res.err)
-      else this.redirect('listing/' + res.user.id)
+      if (res.err) {
+        this.state.message = {text: res.err, type: 'err'}
+        this.setState(this.state)
+      }
+      else {
+        this.state.message = {text: res.message, type: 'msg'}
+        this.redirect('listing/' + res.listing.id, true)
+      }
     } else if (btn === 'new') {
       this.redirect('new')
     } else if (btn === 'cart') {
@@ -199,22 +186,26 @@ class Main extends React.Component {
       let obj = await fetch(url, {method: 'delete', credentials: 'include'})
       let res = await obj.json()
       if (res.err) {
-        console.log(err)
+        this.state.message = {text: res.err, type: 'err'}
       } else {
-        this.state.cart = this.state.cart.filter(x => x.id !== z)
-        this.setState(this.state)
+        if (this.state.cart) this.state.cart = this.state.cart.filter(x => x.id !== z)
+        this.state.user.cart = this.state.user.cart.filter(x => x !== z)
+        this.state.message = {text: res.message, type: 'msg'}
       }
+      this.setState(this.state)
     } else if (btn === 'listing') {
       this.redirect('listing/' + z)
     } else if (btn === 'add') {
-      let url = '/api/user/cart/' + this.state.listing._id
+      let url = '/api/user/cart/' + this.state.listing.id
       let obj = await fetch(url, {method: 'put', credentials: 'include'})
       let res = await obj.json()
       if (res.err) {
-        console.log(res.err)
+        this.state.message = {text: res.err, type: 'err'}
       } else {
-        console.log(res.message)
+        if (res.id) this.state.user.cart.push(res.id)
+        this.state.message = {text: res.message, type: 'msg'}
       }
+      this.setState(this.state)
     } else if (btn === 'edit') {
       this.state.listing.edit = true
       this.state.rawListing = construct.raw(this.state.listing)
@@ -224,17 +215,26 @@ class Main extends React.Component {
       let url = '/api/listing/' + this.state.listing.id + '?' + query
       let obj = await fetch(url, {method: 'put', credentials: 'include'})
       let res = await obj.json()
-      if (res.err) console.log(res.err)
+      if (res.err) {
+        this.state.message = {text: res.err, type: 'err'}
+      }
       else {
         this.state.listing = res.listing
-        this.setState(this.state)
+        this.state.message = {text: res.message, type: 'msg'}
       }
+      this.setState(this.state)
     } else if (btn === 'delete') {
       let url = '/api/listing/' + this.state.listing.id
       let obj = await fetch(url, {method: 'delete', credentials: 'include'})
       let res = await obj.json()
-      if (res.err) console.log(res.err)
-      else this.redirect('')
+      if (res.err) {
+        this.state.message = {text: res.err, type: 'err'}
+        this.setState(this.state)
+      }
+      else {
+        this.state.message = {text: res.message, type: 'msg'}
+        this.redirect('', true)
+      }
     }
   }
 
@@ -246,6 +246,7 @@ class Main extends React.Component {
         dropdown={this.state.dropdown}
         inputChange={this.inputChange}
         clickBtn={this.clickBtn} />
+      <MessageBox message={this.state.message} />
       { this.state.format === 'loading'
       ? <Loading />
       : this.state.format === 'home'
