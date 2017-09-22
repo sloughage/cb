@@ -7,9 +7,9 @@ export default (props) =>
   ? <div>
       <div>cart</div>
       <Listings
+        empty='empty'
         listings={props.listings}
         columns={['title', 'by', 'tag', 'seller', 'price']}
-        clickBtn={props.clickBtn}
-        cart={true} />
+        clickBtn={props.clickBtn} />
     </div>
   : <AccessDenied />

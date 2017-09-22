@@ -2,6 +2,8 @@
 @trim2: #BBB;
 @base: #000;
 @disabled: #DFF;
+@hover: #00F;
+@background: #FFF;
 
 body, div, p, input {
   padding: 0;
@@ -17,20 +19,40 @@ html, body, #main, .stretch {
 }
 
 input {
-  border: solid @base 1px;
+  border: none;
+  border-bottom: solid black 1px;
   width: 8em;
+  outline: none;
+  &:focus {}
+}
+
+.spaced {
   margin-bottom: .5em;
 }
 
-#search {
+.dropdown input {
+  margin-bottom: .5em;
+}
+
+.search {
   min-width: 8em;
   width: 100%;
-  align-self: center;
-  margin: auto 1em auto 0;
+}
+
+.searchbar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 1em;
 }
 
 .padded {
   padding: 1em;
+}
+
+.padded2 {
+  padding: 1em 1em 0 1em;
 }
 
 .body {
@@ -50,20 +72,45 @@ input {
   flex-direction: column;
 }
 
-.header {
-  display: flex;
-  background-color: @trim;
+.center {
+  justify-content: center;
+}
+
+.between {
   justify-content: space-between;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: solid black 1px;
+}
+
+.link {
+  cursor: pointer;
+  &:hover {text-decoration: underline}
+}
+
 .btn {
+  .link;
   display: flex;
   align-items: center;
   padding: 0 .5em;
   height: 2em;
-  cursor: pointer;
-  background-color: @trim;
-  &:hover {background-color: @trim2}
+}
+
+.btn2 {
+  .btn;
+  border: solid black 1px;
+}
+
+.logo {
+  .link;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 .1em .2em;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .disabled {
@@ -80,17 +127,9 @@ input {
   flex-direction: column;
   position: absolute;
   right: 0;
-}
-
-.box {
-  padding: 1em;
   border: solid black 1px;
-  background-color: white;
-}
-
-.link {
-  text-decoration: none;
-  color: black;
+  border-right: none;
+  background-color: @background;
 }
 
 .msg {
@@ -101,23 +140,9 @@ input {
   color: red;
 }
 
-.logo {
-  .pointer;
-  width: 10em;
-  height: 2em;
-  background-color: green;
-}
-
-.filterblock {
-  width: 10em;
-  margin: .5em;
-}
-
-.searchbar {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1em;
+.filter {
+  min-width: 10em;
+  margin-right: 1.5em;
 }
 
 .pointer {
@@ -131,6 +156,10 @@ input {
 .sel {
   .pointer;
   background-color: @trim;
+}
+
+.collapsed {
+  visibility: hidden;
 }
 
 .indent {
@@ -186,6 +215,7 @@ input {
   justify-content: center;
   margin-top: .5em;
 }
+
 
 .loadingcont {
   display: flex;

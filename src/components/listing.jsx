@@ -10,27 +10,36 @@ export default (props) =>
       inputChange={props.inputChange}
       clickBtn={props.clickBtn}
       btn='save' />
-  : <div>
-      <p>sold by: {props.listing.seller}</p>
-      <p>{props.listing.title}</p>
-      <p>by: {props.listing.by.join(', ')}</p>
-      {props.listing.tag && <p>tag: {props.listing.tag.join(', ')}</p>}
-      <p>${props.listing.price}</p>
+  : <div className='padded'>
+      <p className='spaced'>{props.listing.title}</p>
+      <p className='spaced'>by: {props.listing.by.join(', ')}</p>
+      {props.listing.tag &&
+        <p className='spaced'>
+          tag: {props.listing.tag.join(', ')}
+        </p>
+      }
+      <p className='spaced'>${props.listing.price}</p>
+      <p className='spaced'>
+        {'sold by: '}
+        <span className='link' onClick={() => props.clickBtn('user', props.listing.userid)}>
+          {props.listing.seller}
+        </span>
+      </p>
       { props.user.isLoggedIn &&
       ( props.listing.userid === props.user.id
       ? <div className='flex'>
-          <div className='btn' onClick={() => props.clickBtn('edit')}>
+          <div className='btn2' onClick={() => props.clickBtn('edit')}>
             edit
           </div>
         </div>
       : props.user.cart.includes(props.listing.id)
       ? <div className='flex'>
-          <div className='btn' onClick={() => props.clickBtn('remove', props.listing.id)}>
+          <div className='btn2' onClick={() => props.clickBtn('remove', props.listing.id)}>
             remove from cart
           </div>
         </div>
       : <div className='flex'>
-          <div className='btn' onClick={() => props.clickBtn('add')}>
+          <div className='btn2' onClick={() => props.clickBtn('add')}>
             add to cart
           </div>
         </div>

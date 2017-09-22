@@ -25,7 +25,7 @@ router.use('/api/user', User.routes())
 router.use('/api/listing', Listing.routes())
 
 app
-  // .use(delay(200, 800))
+  // .use(delay(300, 300))
   .use(session(app))
   // .use(parser())
   .use(router.routes())

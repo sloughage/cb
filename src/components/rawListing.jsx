@@ -2,7 +2,7 @@ import React from 'react'
 import AccessDenied from './accessDenied.jsx'
 
 export default (props) =>
-  <div>
+  <div className='padded'>
     <div>
       <input
         type='text'

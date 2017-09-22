@@ -3,10 +3,8 @@ import React from 'react'
 export default (props) =>
   <div className='stretch'>
     { props.listings.length === 0
-    ? ( props.cart
-      ? <div>empty</div>
-      : <div>no results found</div>
-  ) : <div>
+    ? <div className='flex center'>{props.empty}</div>
+    : <div>
         <div className='thead'>
           { props.columns.map((v, i) =>
             <div className={'tcell' + props.columns.length} key={i}>{v}</div>

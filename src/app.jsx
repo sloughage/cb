@@ -181,6 +181,8 @@ class Main extends React.Component {
       this.redirect('new')
     } else if (btn === 'cart') {
       this.redirect('cart')
+    } else if (btn === 'user') {
+      this.redirect('user/' + z)
     } else if (btn === 'remove') {
       let url = '/api/user/cart/' + z
       let obj = await fetch(url, {method: 'delete', credentials: 'include'})
