@@ -178,8 +178,10 @@ class Main extends React.Component {
         this.redirect('listing/' + res.listing.id, true)
       }
     } else if (btn === 'new') {
+      this.state.dropdown = construct.dropdown()
       this.redirect('new')
     } else if (btn === 'cart') {
+      this.state.dropdown = construct.dropdown()
       this.redirect('cart')
     } else if (btn === 'user') {
       this.redirect('user/' + z)

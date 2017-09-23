@@ -4,9 +4,10 @@ import AccessDenied from './accessDenied.jsx'
 
 export default (props) =>
   props.isLoggedIn
-  ? <div>
-      <div>cart</div>
+  ? <div className='padded'>
+      <div className='title'>your cart</div>
       <Listings
+        cart={true}
         empty='empty'
         listings={props.listings}
         columns={['title', 'by', 'tag', 'seller', 'price']}

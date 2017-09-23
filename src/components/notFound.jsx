@@ -1,4 +1,4 @@
 import React from 'react'
 
 export default () =>
-  <div>404</div>
+  <div className='title padded'>404</div>

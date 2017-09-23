@@ -1,4 +1,4 @@
-@trim: #DDD;
+@trim: #EEE;
 @trim2: #BBB;
 @base: #000;
 @disabled: #DFF;
@@ -28,6 +28,23 @@ input {
 
 .spaced {
   margin-bottom: .5em;
+}
+
+.spaced2 {
+  margin-top: 1em;
+}
+
+.spaced3 {
+  margin-bottom: 1em;
+}
+
+.spaced4 {
+  margin-left: 1em;
+}
+
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .dropdown input {
@@ -104,6 +121,18 @@ input {
   border: solid black 1px;
 }
 
+.btn3 {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  width: 1em;
+  justify-content: center;
+}
+
+.spacer3 {
+  width: 1.5em;
+}
+
 .logo {
   .link;
   display: flex;
@@ -111,6 +140,14 @@ input {
   padding: 0 0 .1em .2em;
   font-size: 1.2em;
   font-weight: bold;
+}
+
+.title {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 1em;
 }
 
 .disabled {
@@ -143,6 +180,10 @@ input {
 .filter {
   min-width: 10em;
   margin-right: 1.5em;
+}
+
+.nowrap {
+  overflow: hidden;
 }
 
 .pointer {
@@ -182,8 +223,8 @@ input {
   text-decoration: none;
   color: @base;
   cursor: pointer;
-  &:hover {background-color: @trim}
-  // &:hover {background: linear-gradient(#BBB, #EEE)}
+  border: solid white 1px;
+  &:hover {border: solid black 1px}
 }
 
 .tcell5 {

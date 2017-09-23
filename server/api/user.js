@@ -17,26 +17,9 @@ router.get('/', async ctx => {
 
 router.get('/cart', async ctx => {
   try {
-    // let user = ctx.session.user
-    // let db_user = await User.findOne({_id: user.id})
-    // if (!db_user.cart.length) {
-    //   console.log(0, db_user.cart)
-    //   let cart_obj = {$or: db_user.cart.map(x => {_id: x})}
-    //   let db_listings = await Listing.find(cart_obj)
-    //   console.log(1, db_listings)
-    //   let cart = standardize.listings(db_listings.filter(x => x))
-    //   console.log(2, cart)
-    //   ctx.body = {cart}
-    // } else {
-    //   ctx.body = {cart: []}
-    // }
     let user = ctx.session.user
     let db_user = await User.findOne({_id: user.id})
-    let db_listings = await Promise.all(
-      db_user.cart.map(async x => {
-        try {return await Listing.findOne({_id: x})}
-        catch (err) {return null}
-      }))
+    let db_listings = await Listing.find({_id: {$in: db_user.cart}})
     let cart = standardize.listings(db_listings)
     ctx.body = {cart}
   } catch (err) {

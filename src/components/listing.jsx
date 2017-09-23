@@ -5,15 +5,18 @@ export default (props) =>
   props.listing.edit &&
   props.user.isLoggedIn &&
   props.listing.userid === props.user.id
-  ? <RawListing
-      rawListing={props.rawListing}
-      inputChange={props.inputChange}
-      clickBtn={props.clickBtn}
-      btn='save' />
+  ? <div className='padded'>
+      <div className='title'>edit</div>
+      <RawListing
+        rawListing={props.rawListing}
+        inputChange={props.inputChange}
+        clickBtn={props.clickBtn}
+        btn='save' />
+    </div>
   : <div className='padded'>
       <p className='spaced'>{props.listing.title}</p>
       <p className='spaced'>by: {props.listing.by.join(', ')}</p>
-      {props.listing.tag &&
+      { props.listing.tag.length > 0 &&
         <p className='spaced'>
           tag: {props.listing.tag.join(', ')}
         </p>
