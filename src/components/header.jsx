@@ -6,9 +6,8 @@ export default (props) =>
     <div className='logo' onClick={() => props.clickBtn('home')}>
       ComicsBazaar
     </div>
-    { Object.keys(props.user).length === 0
-    ? <div></div>
-    : props.user.isLoggedIn
+    { Object.keys(props.user).length &&
+      props.user.isLoggedIn
     ? <div className='flex'>
         <div>
           <div className='btn' id='settings'>{props.user.username}</div>

@@ -21,7 +21,7 @@ export default (props) =>
           tag: {props.listing.tag.join(', ')}
         </p>
       }
-      <p className='mb1'>${props.listing.price}</p>
+      <p className='mb1'>${props.listing.price.toFixed(2)}</p>
       <p className='mb1'>
         {'sold by: '}
         <span className='link' onClick={() => props.clickBtn('user', props.listing.userid)}>

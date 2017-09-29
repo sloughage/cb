@@ -33,6 +33,7 @@ class Main extends React.Component {
     this.loadUser()
     this.loadMain(window.location.pathname.slice(1), window.location.search)
     document.addEventListener('mousedown', this.clickHandler)
+    window.onpopstate = () => {location.reload()}
   }
 
   async loadUser () {

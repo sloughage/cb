@@ -38,7 +38,10 @@ router.put('/:id', async ctx => {
     let query = ctx.request.query
     let updated_listing = standardize.updateListing(query)
     if (updated_listing.err) throw updated_listing.err
-    let db_listing = await Listing.findOneAndUpdate({_id: id, userid: user.id}, updated_listing, {new: true})
+    let db_listing = await Listing.findOneAndUpdate(
+      {_id: id, userid: user.id},
+      updated_listing, {new: true}
+    )
     let listing = standardize.listing(db_listing)
     ctx.body = {message: 'listing updated', listing}
   } catch (err) {

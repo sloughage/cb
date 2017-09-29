@@ -35,7 +35,7 @@ export default (props) =>
           <div className='w3'></div>
         </div>
       </div>
-      <div className='mb3'>
+      <div className='mb2'>
         <div className='mb1'>tag</div>
         { props.rawListing.tag.map((x, i) =>
           <div key={i} className='flex'>
@@ -56,7 +56,7 @@ export default (props) =>
           <div className='w3'></div>
         </div>
       </div>
-      <div className='mb3'>
+      <div className='mb2'>
         <div className='mb1'>price</div>
         <input
           type='text'
@@ -71,7 +71,7 @@ export default (props) =>
         </div>
       </div>
       { props.btn === 'save' &&
-        <div className='flex'>
+        <div className='flex ml2'>
           <div className='btn2 ml4' onClick={() => props.clickBtn('delete')}>
             delete
           </div>

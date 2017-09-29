@@ -6,8 +6,7 @@ export default (props) =>
       type='text'
       className='search'
       value={props.input}
-      onChange={(e) => props.inputChange(e)}
-      placeholder='search'/>
+      onChange={(e) => props.inputChange(e)} />
     <div className='btn2' onClick={() => props.clickBtn('search')}>
       search
     </div>
