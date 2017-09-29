@@ -1,9 +1,7 @@
-@trim: #EEE;
-@trim2: #BBB;
-@base: #000;
-@disabled: #DFF;
-@hover: #00F;
+@disabled: #999;
+@alert: #00F;
 @background: #FFF;
+@text: #000;
 
 body, div, p, input {
   padding: 0;
@@ -20,31 +18,41 @@ html, body, #main, .stretch {
 
 input {
   border: none;
-  border-bottom: solid black 1px;
+  border-bottom: solid @text 1px;
   width: 8em;
   outline: none;
-  &:focus {}
 }
 
-.spaced {
-  margin-bottom: .5em;
-}
+.mt1 {margin-top: .5em}
+.mb1 {margin-bottom: .5em}
+.mb2 {margin-bottom: 1em}
+.ml2 {margin-left: 1em}
+.mr3 {margin-right: 1.5em}
+.bb {border-bottom: solid @text 1px}
+.p2 {padding: 1em}
+.w3 {width: 1.5em}
+.ps {padding: 0 .25em}
 
-.spaced2 {
-  margin-top: 1em;
-}
+.hidden {display: none}
+.flex {display: flex}
+.v {flex-direction: column}
+.center {justify-content: center}
+.between {justify-content: space-between}
 
-.spaced3 {
-  margin-bottom: 1em;
-}
-
-.spaced4 {
-  margin-left: 1em;
-}
+.msg {color: @text}
+.err {color: @alert}
+.disabled {color: @disabled}
+.pointer {cursor: pointer}
+.cell5 {width: 20%}
+.cell4 {width: 25%}
 
 .wrap {
   display: flex;
   flex-wrap: wrap;
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 .dropdown input {
@@ -64,43 +72,21 @@ input {
   margin-bottom: 1em;
 }
 
-.padded {
-  padding: 1em;
+.collapsed {
+  height: 0;
+  visibility: hidden;
 }
 
-.padded2 {
-  padding: 1em 1em 0 1em;
-}
-
-.body {
-  padding: .5em;
-}
-
-.block {
-  margin: .5em;
-  width: 100%;
-}
-
-.flex {
+.message {
   display: flex;
-}
-
-.v {
-  flex-direction: column;
-}
-
-.center {
   justify-content: center;
-}
-
-.between {
-  justify-content: space-between;
+  padding: 1em 1em 0 1em;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  border-bottom: solid black 1px;
+  border-bottom: solid @text 1px;
 }
 
 .link {
@@ -118,7 +104,7 @@ input {
 
 .btn2 {
   .btn;
-  border: solid black 1px;
+  border: solid @text 1px;
 }
 
 .btn3 {
@@ -127,10 +113,6 @@ input {
   align-items: center;
   width: 1em;
   justify-content: center;
-}
-
-.spacer3 {
-  width: 1.5em;
 }
 
 .logo {
@@ -150,124 +132,45 @@ input {
   margin-bottom: 1em;
 }
 
-.disabled {
-  display: flex;
-  align-items: center;
-  padding: 0 .5em;
-  height: 2em;
-  cursor: default;
-  background-color: @disabled;
-}
-
 .dropdown {
   display: flex;
   flex-direction: column;
   position: absolute;
   right: 0;
-  border: solid black 1px;
+  border: solid @text 1px;
   border-right: none;
   background-color: @background;
 }
 
-.msg {
-  color: black;
-}
-
-.err {
-  color: red;
-}
-
-.filter {
-  min-width: 10em;
-  margin-right: 1.5em;
-}
-
-.nowrap {
+#filter .w {
+  min-width: 8em;
+  max-width: 12em;
+  white-space: nowrap;
   overflow: hidden;
-}
-
-.pointer {
-  cursor: pointer;
-}
-
-.unsel {
-  .pointer;
-}
-
-.sel {
-  .pointer;
-  background-color: @trim;
-}
-
-.collapsed {
-  visibility: hidden;
-}
-
-.indent {
-  padding-left: .5em;
-}
-
-.trow {
-  display: flex;
-  width: 100%;
-}
-
-.thead {
-  .trow;
-  border-bottom: solid @base 1px;
+  text-overflow: ellipsis;
 }
 
 .listing {
-  .trow;
-  margin: .5em 0;
-  text-decoration: none;
-  color: @base;
-  cursor: pointer;
-  border: solid white 1px;
-  &:hover {border: solid black 1px}
-}
-
-.tcell5 {
-  width: 20%;
-}
-
-.tcell4 {
-  width: 25%;
-}
-
-.cont1 {
   display: flex;
-  width: 11em;
-  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  margin: .25em 0;
+  padding: .25em;
+  border: solid @background 1px;
+  &:hover {border: solid @text 1px}
+}
+
+#listings .cont {
+  display: flex;
+  width: 12em;
   margin: auto .5em;
 }
 
-.spacev1 {
-  height: .5em;
-}
-
-.spacev2 {
-  height: 1em;
-}
-
-.btncont {
+#filter .cont {
   display: flex;
   width: 100%;
   justify-content: center;
   margin-top: .5em;
-}
-
-
-.loadingcont {
-  display: flex;
-  align-items: center;
-  padding: 0 .5em;
-  height: 2em;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none;
 }
 
 @keyframes flicker {

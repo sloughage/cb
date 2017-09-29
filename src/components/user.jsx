@@ -2,7 +2,7 @@ import React from 'react'
 import Listings from './listings.jsx'
 
 export default (props) =>
-  <div className='padded'>
+  <div className='p2'>
     <div className='title'>{props.user.username}</div>
     <Listings
       empty='no listings'

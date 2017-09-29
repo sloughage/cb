@@ -4,7 +4,7 @@ import Filter from './filter.jsx'
 import Listings from './listings.jsx'
 
 export default (props) =>
-  <div className='padded'>
+  <div className='p2'>
     <Searchbar
       input={props.input}
       inputChange={props.inputChange}
@@ -12,7 +12,7 @@ export default (props) =>
     <div className='flex'>
       <Filter
         categories={props.categories}
-        clickFilter={props.clickFilter} 
+        clickFilter={props.clickFilter}
         clickBtn={props.clickBtn} />
       <Listings
         empty='no results found'

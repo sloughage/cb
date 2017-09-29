@@ -20,21 +20,41 @@ standardize.user = (db_user) => ({
 standardize.listings = (db_listings) => db_listings
   .map(x => standardize.listing(x))
 
-standardize.newListing = (user, query) => ({
-  userid: user.id,
-  username: user.username,
-  title: query.title,
-  by: query.by.constructor === Array ? query.by : [query.by],
-  tag: query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : [],
-  price: query.price
-})
+standardize.newListing = (user, query) => {
+  try {
+    let r = {}
+    if (!user.id) throw 'not logged in'
+    r.userid = user.id
+    if (!user.username) throw 'not logged in'
+    r.username = user.username
+    if (!query.title) throw 'title required'
+    r.title = query.title
+    if (!query.by) throw 'by required'
+    r.by = query.by.constructor === Array ? query.by : [query.by]
+    r.tag = query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : []
+    if (isNaN(+query.price) || +query.price < 0 || +query.price >= 10000) throw 'valid price required'
+    r.price = +query.price
+    return r
+  } catch (err){
+    return {err}
+  }
+}
 
-standardize.updateListing = (query) => ({
-  title: query.title,
-  by: query.by.constructor === Array ? query.by : [query.by],
-  tag: query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : [],
-  price: query.price
-})
+standardize.updateListing = (query) => {
+  try {
+    let r = {}
+    if (!query.title) throw 'title required'
+    r.title = query.title
+    if (!query.by) throw 'by required'
+    r.by = query.by.constructor === Array ? query.by : [query.by]
+    r.tag = query.tag ? query.tag.constructor === Array ? query.tag : [query.tag] : []
+    if (isNaN(+query.price) || +query.price < 0 || +query.price >= 10000) throw 'valid price required'
+    r.price = +query.price
+    return r
+  } catch (err) {
+    return {err}
+  }
+}
 
 standardize.query = (query) => ({
   input: query.input ? query.input.split(' ') : [],

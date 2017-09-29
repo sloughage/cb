@@ -5,7 +5,7 @@ export default (props) =>
     <div className='btn' id={props.type}>
       {props.type}
     </div>
-    <div className={props.data.open ? 'dropdown padded' : 'hidden'} id={props.type + 'cont'}>
+    <div className={props.data.open ? 'dropdown p2' : 'hidden'} id={props.type + 'cont'}>
       <input
         type='text'
         value={props.data.username}

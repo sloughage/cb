@@ -66,13 +66,14 @@ router.get('/:id', async ctx => {
   }
 })
 
-router.post('/register/:username/:password', async ctx => {
-  let username = ctx.params.username
-  let password = ctx.params.password
-  let existing_user = await User.findOne({username: username})
-  if (existing_user) {
-    ctx.body = {err: 'username in use'}
-  } else {
+router.post('/register', async ctx => {
+  try {
+    let username = ctx.query.username
+    if (!username) throw 'username required'
+    let password = ctx.query.password
+    if (!password) throw 'password required'
+    let existing_user = await User.findOne({username: username})
+    if (existing_user) throw 'username in use'
     let salt = await bcrypt.genSalt(10)
     let hash = await bcrypt.hash(password, salt)
     let db_user = await User.create({
@@ -83,24 +84,26 @@ router.post('/register/:username/:password', async ctx => {
     let user = standardize.user(db_user)
     ctx.session.user = user
     ctx.body = {message: 'registered', user}
+  } catch (err) {
+    ctx.body = {err}
   }
 })
 
-router.post('/login/:username/:password', async ctx => {
-  let username = ctx.params.username
-  let password = ctx.params.password
-  let db_user = await User.findOne({username: username})
-  if (!db_user) {
-    ctx.body = {err: 'username not found'}
-  } else {
+router.post('/login', async ctx => {
+  try {
+    let username = ctx.query.username
+    if (!username) throw 'username required'
+    let password = ctx.query.password
+    if (!password) throw 'password required'
+    let db_user = await User.findOne({username: username})
+    if (!db_user) throw 'username not found'
     let arePasswordsEqual = await bcrypt.compare(password, db_user.password)
-    if (!arePasswordsEqual) {
-      ctx.body = {err: 'password incorrect'}
-    } else {
-      let user = standardize.user(db_user)
-      ctx.session.user = user
-      ctx.body = {message: 'logged in', user}
-    }
+    if (!arePasswordsEqual) throw 'password incorrect'
+    let user = standardize.user(db_user)
+    ctx.session.user = user
+    ctx.body = {message: 'logged in', user}
+  } catch (err) {
+    ctx.body = {err}
   }
 })
 

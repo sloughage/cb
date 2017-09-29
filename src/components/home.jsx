@@ -2,7 +2,7 @@ import React from 'react'
 import Searchbar from './searchbar.jsx'
 
 export default (props) =>
-  <div className='padded'>
+  <div className='p2'>
     <Searchbar
       input={props.input}
       inputChange={props.inputChange}

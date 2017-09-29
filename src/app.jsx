@@ -38,12 +38,9 @@ class Main extends React.Component {
   async loadUser () {
     let obj = await fetch('/api/user', {credentials: 'include'})
     let res = await obj.json()
-    if (res.err) {
-      console.log(res.err)
-    } else {
-      this.state.user = res.user
-      this.setState(this.state)
-    }
+    if (res.user) this.state.user = res.user
+    else this.state.user = {isLoggedIn: false}
+    this.setState(this.state)
   }
 
   async loadMain (pathname, search='') {
@@ -53,31 +50,31 @@ class Main extends React.Component {
     } else if (pathname.startsWith('search')) {
       let obj = await fetch('/api/' + pathname + search)
       let res = await obj.json()
-      if (res.err) {
-        console.log(res.err)
-      } else {
+      if (res.listings && res.categories) {
         this.state.listings = res.listings
         this.state.categories = res.categories
         this.state.input = res.input
         this.state.format = 'search'
+      } else {
+        this.state.message = {text: res.err || 'server error', type: 'err'}
       }
     } else if (pathname.startsWith('listing')) {
       let obj = await fetch('/api/' + pathname, {credentials: 'include'})
       let res = await obj.json()
-      if (res.err) {
-        console.log(res.err)
-      } else {
+      if (res.listing) {
         this.state.listing = res.listing
         this.state.format = 'listing'
+      } else {
+        this.state.message = {text: res.err || 'server error', type: 'err'}
       }
     } else if (pathname.startsWith('user')) {
       let obj = await fetch('/api/' + pathname)
       let res = await obj.json()
-      if (res.err) {
-        console.log(res.err)
-      } else {
+      if (res.profile) {
         this.state.profile = res.profile
         this.state.format = 'user'
+      } else {
+        this.state.message = {text: res.err || 'server error', type: 'err'}
       }
     } else if (pathname === 'new') {
       this.state.rawListing = construct.new()
@@ -85,12 +82,12 @@ class Main extends React.Component {
     } else if (pathname === 'cart') {
       let obj = await fetch('/api/user/cart', {credentials: 'include'})
       let res = await obj.json()
-      if (res.err) {
-        console.log(res.err)
-      } else {
+      if (res.cart) {
         this.state.cart = res.cart
+        this.state.format = 'cart'
+      } else {
+        this.state.message = {text: res.err || 'server error', type: 'err'}
       }
-      this.state.format = 'cart'
     }
     if (this.state.format === 'loading') this.state.format = '404'
     this.setState(this.state)
@@ -149,7 +146,7 @@ class Main extends React.Component {
     } else if (btn === 'login' || btn === 'register' || btn === 'logout') {
       let cat = this.state.dropdown[btn]
       let url = '/api/user/' + btn
-      if (btn !== 'logout') url += '/' + cat.username + '/' + cat.password
+      if (btn !== 'logout') url += construct.user(cat)
       let obj = await fetch(url, {method: 'post', credentials: 'include'})
       let res = await obj.json()
       if (res.err) {
@@ -166,6 +163,7 @@ class Main extends React.Component {
       this.redirect(search)
     } else if (btn === 'post') {
       let query = construct.query(this.state.rawListing)
+      console.log(query)
       let url = '/api/listing?' + query
       let obj = await fetch(url, {method: 'post', credentials: 'include'})
       let res = await obj.json()
@@ -221,8 +219,7 @@ class Main extends React.Component {
       let res = await obj.json()
       if (res.err) {
         this.state.message = {text: res.err, type: 'err'}
-      }
-      else {
+      } else {
         this.state.listing = res.listing
         this.state.message = {text: res.message, type: 'msg'}
       }

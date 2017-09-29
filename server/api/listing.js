@@ -18,25 +18,28 @@ router.get('/:id', async ctx => {
 router.post('/', async ctx => {
   try {
     let user = ctx.session.user
+    if (!user.isLoggedIn) throw 'not logged in'
     let query = ctx.request.query
     let new_listing = standardize.newListing(user, query)
+    if (new_listing.err) throw new_listing.err
     let db_listing = await Listing.create(new_listing)
     let listing = standardize.listing(db_listing)
     ctx.body = {message: 'listing posted', listing}
   } catch (err) {
-    ctx.body = {err: 'not logged in'}
+    ctx.body = {err}
   }
 })
 
 router.put('/:id', async ctx => {
   try {
     let user = ctx.session.user
+    if (!user.isLoggedIn) throw 'not logged in'
     let id = ctx.params.id
     let query = ctx.request.query
     let updated_listing = standardize.updateListing(query)
+    if (updated_listing.err) throw updated_listing.err
     let db_listing = await Listing.findOneAndUpdate({_id: id, userid: user.id}, updated_listing, {new: true})
     let listing = standardize.listing(db_listing)
-    console.log(listing)
     ctx.body = {message: 'listing updated', listing}
   } catch (err) {
     ctx.body = {err}

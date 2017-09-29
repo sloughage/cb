@@ -4,7 +4,7 @@ import AccessDenied from './accessDenied.jsx'
 
 export default (props) =>
   props.isLoggedIn
-  ? <div className='padded'>
+  ? <div className='p2'>
       <div className='title'>your cart</div>
       <Listings
         cart={true}
