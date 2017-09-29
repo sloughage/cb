@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const standardize = require('./standardize.js')
 
 router.get('/', async ctx => {
+  try {
   let cookie_user = ctx.session.user
   if (cookie_user && cookie_user.isLoggedIn) {
     let db_user = await User.findOne({_id: cookie_user.id})
@@ -13,6 +14,7 @@ router.get('/', async ctx => {
   } else {
     ctx.body = {user: {isLoggedIn: false}}
   }
+} catch (err) {ctx.body = {user: {isLoggedIn: false}}}
 })
 
 router.get('/cart', async ctx => {

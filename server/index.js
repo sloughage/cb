@@ -14,8 +14,11 @@ const db_host = process.env.DB_HOST || 'mongodb://localhost/cb'
 
 app.keys = ['secret']
 
-mongoose.Promise = Promise
+mongoose.Promise = global.Promise
 mongoose.connect(db_host)
+mongoose.connection.on('connected', () => {console.log('connected')})
+mongoose.connection.on('error', err => {console.log('error')})
+mongoose.connection.on('disconnected', () => {console.log('disconnected')})
 
 const Search = require('./api/search.js')
 const User = require('./api/user.js')
