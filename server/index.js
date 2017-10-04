@@ -6,6 +6,7 @@ const send = require('koa-send')
 const router = require('koa-router')()
 const session = require('koa-session')
 const mongoose = require('mongoose')
+const path = require('path')
 // const delay = require('koa-delay')
 
 const port = process.env.PORT || 3000
@@ -31,6 +32,6 @@ app
   .use(session(app))
   .use(router.routes())
   .use(router.allowedMethods())
-  .use(static('build'))
-  .use(async ctx => {await send(ctx, 'build/index.html')})
+  .use(static(path.join(__dirname + '/../build')))
+  .use(async ctx => {await send(ctx, '/build/index.html')})
   .listen(port)
