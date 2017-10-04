@@ -95,7 +95,7 @@ class Main extends React.Component {
   }
 
   redirect (url, hold) {
-    if (!hold) this.state.message = []
+    if (!hold) this.state.message = null
     this.state.format = 'loading'
     this.setState(this.state)
     window.history.pushState(null, null, '/' + url)

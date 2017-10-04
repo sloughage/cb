@@ -1,12 +1,17 @@
 const gulp = require('gulp')
+const watch = require('gulp-watch')
+
 const htmlmin = require('gulp-htmlmin')
+
 const less = require('gulp-less')
 const cssmin = require('gulp-clean-css')
+
 const browserify = require('browserify')
 const source = require('vinyl-source-stream')
 const buffer = require('vinyl-buffer')
 const uglify = require('gulp-uglify')
-const watch = require('gulp-watch')
+
+const transform = require('vinyl-transform')
 
 gulp.task('html', () => gulp.src('src/index.html')
   .pipe(htmlmin({
@@ -27,21 +32,12 @@ gulp.task('css', () => gulp.src('src/style.less')
 )
 
 gulp.task('js', () => browserify('./src/app.jsx')
-  .transform('babelify', {presets: ['es2015', 'react']})
+  .transform('babelify')
   .bundle()
   .pipe(source('app.js'))
-  //.pipe(buffer())
-  //.pipe(uglify())
+  // .pipe(buffer())
+  // .pipe(uglify())
   .pipe(gulp.dest('build'))
-)
-
-gulp.task('react', () => browserify('./test/components/main.jsx')
-  .transform('babelify', {presets: ['es2015', 'react']})
-  .bundle()
-  .pipe(source('app.js'))
-  //.pipe(buffer())
-  //.pipe(uglify())
-  .pipe(gulp.dest('test'))
 )
 
 gulp.task('watch', () => {

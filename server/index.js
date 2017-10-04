@@ -6,8 +6,7 @@ const send = require('koa-send')
 const router = require('koa-router')()
 const session = require('koa-session')
 const mongoose = require('mongoose')
-// const parser = require('koa-bodyparser')
-const delay = require('koa-delay')
+// const delay = require('koa-delay')
 
 const port = process.env.PORT || 3000
 const db_host = process.env.DB_HOST || 'mongodb://localhost/cb'
@@ -30,7 +29,6 @@ router.use('/api/listing', Listing.routes())
 app
   // .use(delay(300, 300))
   .use(session(app))
-  // .use(parser())
   .use(router.routes())
   .use(router.allowedMethods())
   .use(static('build'))
