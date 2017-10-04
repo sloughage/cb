@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server/index.js",
+  "engines": {
+    "node": "8.4.0"
+  },
   "scripts": {
     "start": "node server/index.js"
   },
