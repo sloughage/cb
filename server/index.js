@@ -12,7 +12,7 @@ const path = require('path')
 const port = process.env.PORT || 3000
 const db_host = process.env.DB_HOST || 'mongodb://localhost/cb'
 
-app.keys = ['secret']
+app.keys = [process.env.KEY]
 
 mongoose.Promise = global.Promise
 mongoose.connect(db_host)
