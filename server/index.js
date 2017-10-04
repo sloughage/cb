@@ -32,6 +32,6 @@ app
   .use(session(app))
   .use(router.routes())
   .use(router.allowedMethods())
-  .use(static(path.join(__dirname + '/../build')))
-  .use(async ctx => {await send(ctx, '/build/index.html')})
+  .use(static('build'))
+  .use(async ctx => {await send(ctx, 'build/index.html')})
   .listen(port)
