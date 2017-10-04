@@ -1,6 +1,6 @@
 # ComicsBazaar
 
-Hosted at [https://cbls.herokuapp.com].
+Hosted at https://cbls.herokuapp.com.
 
 ### Built with
 * Frontend: React
